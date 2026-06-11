@@ -14,7 +14,12 @@ keywords = []
 authors = [
     { name = "thorwhalen" },
 ]
-dependencies = []
+# raglab orchestrates retrieval via `ir` (the retrieval substrate). LLM
+# strategies (Planner/Formulator/Evaluator) use `oa` lazily — the `llm` extra
+# below — so `import raglab` stays offline by default.
+dependencies = [
+    "ir>=0.1.12",
+]
 
 [project.license]
 text = "mit"
@@ -25,6 +30,9 @@ Repository = "https://github.com/thorwhalen/raglab"
 Documentation = "https://thorwhalen.github.io/raglab"
 
 [project.optional-dependencies]
+llm = [
+    "oa",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -50,13 +58,18 @@ exclude = [
 ]
 
 [tool.ruff.lint]
+# Real lint rules from the start (pyflakes / pycodestyle / bugbear), not just
+# docstring presence. E501 (line length) stays off — long descriptive docstrings.
 select = [
     "D100",
+    "F",
+    "E",
+    "W",
+    "B",
 ]
 ignore = [
     "D203",
     "E501",
-    "B905",
 ]
 
 [tool.ruff.lint.pydocstyle]
