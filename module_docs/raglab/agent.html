@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raglab.agent &mdash; raglab 0.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="raglab" href="../raglab.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            raglab
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../raglab.html">raglab</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">raglab.agent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Budget"><code class="docutils literal notranslate"><span class="pre">Budget</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Citer"><code class="docutils literal notranslate"><span class="pre">Citer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Evaluator"><code class="docutils literal notranslate"><span class="pre">Evaluator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Formulator"><code class="docutils literal notranslate"><span class="pre">Formulator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Judgement"><code class="docutils literal notranslate"><span class="pre">Judgement</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.LowLevelQuery"><code class="docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Planner"><code class="docutils literal notranslate"><span class="pre">Planner</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Query"><code class="docutils literal notranslate"><span class="pre">Query</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.Result"><code class="docutils literal notranslate"><span class="pre">Result</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.SingleContextAgent"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#raglab.agent.SingleContextAgent.citer"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.citer()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raglab.agent.SingleContextAgent.evaluator"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.evaluator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raglab.agent.SingleContextAgent.formulator"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.formulator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raglab.agent.SingleContextAgent.planner"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.planner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#raglab.agent.SingleContextAgent.reranker"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.reranker()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.SubTask"><code class="docutils literal notranslate"><span class="pre">SubTask</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.identity_citer"><code class="docutils literal notranslate"><span class="pre">identity_citer()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.identity_formulator"><code class="docutils literal notranslate"><span class="pre">identity_formulator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.ir_sources"><code class="docutils literal notranslate"><span class="pre">ir_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.make_search_agent"><code class="docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.passthrough_evaluator"><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.score_reranker"><code class="docutils literal notranslate"><span class="pre">score_reranker()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">raglab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">raglab.agent</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/module_docs/raglab/agent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-raglab.agent">
+<span id="raglab-agent"></span><h1>raglab.agent<a class="headerlink" href="#module-raglab.agent" title="Link to this heading"></a></h1>
+<p>The Composable Search Agent — roles wired by a control loop (ir_09).</p>
+<p><cite>raglab</cite> is the <strong>orchestration layer on top of `ir`</strong> (the retrieval substrate).
+This module is the v1 foundation: the immutable value types, the role <em>Protocols</em>
+(open-closed strategy seams), and a <cite>SingleContextAgent</cite> whose fixed control loop
+is fully parametrized by injected roles. Concrete tools live at the leaves — an
+<cite>ir</cite> corpus becomes one <cite>Retriever</cite> via <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.as_retriever()</span></code>.</p>
+<p>The shape follows ir_09 §3/§6: a small set of named roles —
+<code class="docutils literal notranslate"><span class="pre">Planner</span> <span class="pre">/</span> <span class="pre">Formulator</span> <span class="pre">/</span> <span class="pre">Retriever</span> <span class="pre">/</span> <span class="pre">Evaluator</span> <span class="pre">/</span> <span class="pre">Reranker</span> <span class="pre">/</span> <span class="pre">Citer</span></code> — and a loop
+whose defining feature is the <strong>back-edge</strong> (evaluator → reformulate) that makes
+it an <em>agent</em> rather than a DAG. v1 ships the loop with smart defaults (a trivial
+planner + a pass-through evaluator), so the thin slice runs end-to-end with no
+LLM; turning on the back-edge is just injecting an LLM <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code> that returns
+a <code class="docutils literal notranslate"><span class="pre">refinement</span></code> (ir_09 §8 step 3).</p>
+<p>Progressive disclosure: <a class="reference internal" href="#raglab.agent.make_search_agent" title="raglab.agent.make_search_agent"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a> gives sensible defaults for
+every role, so the simple path is <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code>.</p>
+<p>Dependency direction is one-way: <cite>raglab</cite> imports <cite>ir</cite>; <cite>ir</cite> never imports
+<cite>raglab</cite>. The <code class="docutils literal notranslate"><span class="pre">Result</span></code> type and the <code class="docutils literal notranslate"><span class="pre">Retriever</span></code> contract are ir’s (SSOT).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Budget">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Budget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_rounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sources_per_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_results_per_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Budget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Budget" title="Link to this definition"></a></dt>
+<dd><p>Loop bounds: the safety net under the (harder) sufficiency decision.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Citer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Citer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Citer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Citer" title="Link to this definition"></a></dt>
+<dd><p>Confirm/annotate that each result supports its use (identity by default).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Evaluator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Evaluator" title="Link to this definition"></a></dt>
+<dd><p>Judge relevance + sufficiency; optionally emit a refinement (back-edge).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Formulator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Formulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Formulator" title="Link to this definition"></a></dt>
+<dd><p>Turn a sub-task + one source into concrete low-level queries.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Judgement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Judgement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relevant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sufficient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refinement</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><span class="pre">SubTask</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Judgement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Judgement" title="Link to this definition"></a></dt>
+<dd><p>An evaluator’s verdict over a round’s results.</p>
+<p><code class="docutils literal notranslate"><span class="pre">relevant</span></code> is the kept subset; <code class="docutils literal notranslate"><span class="pre">sufficient</span></code> says whether to stop; a
+non-<code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">refinement</span></code> is the <strong>back-edge</strong> — the next sub-task to
+re-query with. The pass-through default returns <code class="docutils literal notranslate"><span class="pre">sufficient=True</span></code> and no
+refinement (no loop).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.LowLevelQuery">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">LowLevelQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#LowLevelQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.LowLevelQuery" title="Link to this definition"></a></dt>
+<dd><p>One concrete query against one source.</p>
+<p><code class="docutils literal notranslate"><span class="pre">query</span></code> is the text handed to the source’s <code class="xref py py-data docutils literal notranslate"><span class="pre">Retriever</span></code>; <code class="docutils literal notranslate"><span class="pre">params</span></code>
+are per-call retriever overrides (e.g. <code class="docutils literal notranslate"><span class="pre">mode</span></code> / <code class="docutils literal notranslate"><span class="pre">filter</span></code> / <code class="docutils literal notranslate"><span class="pre">k</span></code> for an
+ir corpus). A formulator turns a <a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubTask</span></code></a> into these.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Planner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Planner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Planner" title="Link to this definition"></a></dt>
+<dd><p>Decompose a query into sub-tasks and select sources for each.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Query">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Query" title="Link to this definition"></a></dt>
+<dd><p>A user intent: free text plus optional structured constraints.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.Reranker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#Reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.Reranker" title="Link to this definition"></a></dt>
+<dd><p>Produce the final ordering over the (cross-source) merged results.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="raglab.agent.Result">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">Result</span></span><a class="headerlink" href="#raglab.agent.Result" title="Link to this definition"></a></dt>
+<dd><p>A retrieved item — ir’s <code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code> (ir_09’s <code class="docutils literal notranslate"><span class="pre">Result</span></code>):
+a <em>pointer + snippet</em> (<code class="docutils literal notranslate"><span class="pre">text</span></code>) with a <code class="docutils literal notranslate"><span class="pre">score</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata</span></code>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">SingleContextAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">sources:</span> <span class="pre">~collections.abc.Mapping[str,</span> <span class="pre">~typing.Callable[[...],</span> <span class="pre">list[~ir.base.SearchHit]]],</span> <span class="pre">planner:</span> <span class="pre">~raglab.agent.Planner</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">single_subtask_planner&gt;,</span> <span class="pre">formulator:</span> <span class="pre">~raglab.agent.Formulator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_formulator&gt;,</span> <span class="pre">evaluator:</span> <span class="pre">~raglab.agent.Evaluator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">passthrough_evaluator&gt;,</span> <span class="pre">reranker:</span> <span class="pre">~raglab.agent.Reranker</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">score_reranker&gt;,</span> <span class="pre">citer:</span> <span class="pre">~raglab.agent.Citer</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_citer&gt;,</span> <span class="pre">budget:</span> <span class="pre">~raglab.agent.Budget</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#SingleContextAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.SingleContextAgent" title="Link to this definition"></a></dt>
+<dd><p>One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).</p>
+<p>The loop is fixed; every <em>decision</em> is an injected role. Promotion to a
+multi-agent orchestrator (ir_09 §7) swaps this class while keeping the same
+role contracts. The <strong>back-edge</strong> is the single line <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">=</span>
+<span class="pre">judged.refinement</span></code> in <code class="xref py py-meth docutils literal notranslate"><span class="pre">_run_task()</span></code> — that is what makes this an agent.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.citer">
+<span class="sig-name descname"><span class="pre">citer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.citer" title="Link to this definition"></a></dt>
+<dd><p>No-op citer (verification needs a generated claim — that lives in srag).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.evaluator">
+<span class="sig-name descname"><span class="pre">evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#raglab.agent.Judgement" title="raglab.agent.Judgement"><span class="pre">Judgement</span></a></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.evaluator" title="Link to this definition"></a></dt>
+<dd><p>Pass-through critic: keep everything, declare sufficient, never re-query.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.formulator">
+<span class="sig-name descname"><span class="pre">formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><span class="pre">LowLevelQuery</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.formulator" title="Link to this definition"></a></dt>
+<dd><p>Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.planner">
+<span class="sig-name descname"><span class="pre">planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><span class="pre">SubTask</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.planner" title="Link to this definition"></a></dt>
+<dd><p>Trivial planner: one sub-task over <em>all</em> registered sources, no decomposition.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.reranker">
+<span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.reranker" title="Link to this definition"></a></dt>
+<dd><p>Final ordering by descending <code class="docutils literal notranslate"><span class="pre">score</span></code> (the cross-source merge, v1).</p>
+<p>Note: a plain score sort assumes comparable score scales across sources
+(true when they share an embedder + mode). A rank-based (RRF) cross-source
+merge for heterogeneous backends is a documented follow-up.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.agent.SubTask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">SubTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#SubTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.SubTask" title="Link to this definition"></a></dt>
+<dd><p>A planner’s unit of work: a sub-goal bound to a set of registered sources.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.identity_citer">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">identity_citer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#identity_citer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.identity_citer" title="Link to this definition"></a></dt>
+<dd><p>No-op citer (verification needs a generated claim — that lives in srag).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.identity_formulator">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">identity_formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><span class="pre">SubTask</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><span class="pre">LowLevelQuery</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#identity_formulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.identity_formulator" title="Link to this definition"></a></dt>
+<dd><p>Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.ir_sources">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">ir_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">search_defaults</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#ir_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.ir_sources" title="Link to this definition"></a></dt>
+<dd><p>A source registry <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">Retriever}</span></code> backed by named <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpora.</p>
+<p>Each name is bound to <code class="docutils literal notranslate"><span class="pre">ir.as_retriever(name,</span> <span class="pre">**search_defaults)</span></code>. A thin
+convenience; once ir ships <code class="docutils literal notranslate"><span class="pre">registry.retrievers()</span></code> (a lazy view), prefer
+that. <code class="docutils literal notranslate"><span class="pre">search_defaults</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">mode=&quot;hybrid&quot;</span></code>) apply to every source.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.make_search_agent">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">make_search_agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">planner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Planner" title="raglab.agent.Planner"><span class="pre">Planner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Formulator" title="raglab.agent.Formulator"><span class="pre">Formulator</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Evaluator" title="raglab.agent.Evaluator"><span class="pre">Evaluator</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reranker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Reranker" title="raglab.agent.Reranker"><span class="pre">Reranker</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Citer" title="raglab.agent.Citer"><span class="pre">Citer</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Budget" title="raglab.agent.Budget"><span class="pre">Budget</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#raglab.agent.SingleContextAgent" title="raglab.agent.SingleContextAgent"><span class="pre">SingleContextAgent</span></a></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#make_search_agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.make_search_agent" title="Link to this definition"></a></dt>
+<dd><p>Build a <a class="reference internal" href="#raglab.agent.SingleContextAgent" title="raglab.agent.SingleContextAgent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a> over <em>sources</em> with smart defaults.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sources</span></code> is a <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code> — e.g.
+<code class="docutils literal notranslate"><span class="pre">{&quot;skills&quot;:</span> <span class="pre">ir.as_retriever(&quot;skills&quot;)}</span></code>. Every role defaults to its no-LLM
+thin-slice implementation, so <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code> just
+works; inject an LLM <code class="docutils literal notranslate"><span class="pre">formulator</span></code> / <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to turn on rewriting and
+the back-edge.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.passthrough_evaluator">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">passthrough_evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><span class="pre">SubTask</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#raglab.agent.Judgement" title="raglab.agent.Judgement"><span class="pre">Judgement</span></a></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#passthrough_evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.passthrough_evaluator" title="Link to this definition"></a></dt>
+<dd><p>Pass-through critic: keep everything, declare sufficient, never re-query.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.score_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">score_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#score_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.score_reranker" title="Link to this definition"></a></dt>
+<dd><p>Final ordering by descending <code class="docutils literal notranslate"><span class="pre">score</span></code> (the cross-source merge, v1).</p>
+<p>Note: a plain score sort assumes comparable score scales across sources
+(true when they share an embedder + mode). A rank-based (RRF) cross-source
+merge for heterogeneous backends is a documented follow-up.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.single_subtask_planner">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">single_subtask_planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Query" title="raglab.agent.Query"><span class="pre">Query</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#raglab.agent.SubTask" title="raglab.agent.SubTask"><span class="pre">SubTask</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#single_subtask_planner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.single_subtask_planner" title="Link to this definition"></a></dt>
+<dd><p>Trivial planner: one sub-task over <em>all</em> registered sources, no decomposition.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../raglab.html" class="btn btn-neutral float-left" title="raglab" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

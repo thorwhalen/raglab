@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raglab.agent &mdash; raglab 0.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            raglab
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab.html">raglab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab/agent.html">raglab.agent</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">raglab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">raglab.agent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for raglab.agent</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;The Composable Search Agent — roles wired by a control loop (ir_09).</span>
+
+<span class="sd">`raglab` is the **orchestration layer on top of `ir`** (the retrieval substrate).</span>
+<span class="sd">This module is the v1 foundation: the immutable value types, the role *Protocols*</span>
+<span class="sd">(open-closed strategy seams), and a `SingleContextAgent` whose fixed control loop</span>
+<span class="sd">is fully parametrized by injected roles. Concrete tools live at the leaves — an</span>
+<span class="sd">`ir` corpus becomes one `Retriever` via :func:`ir.as_retriever`.</span>
+
+<span class="sd">The shape follows ir_09 §3/§6: a small set of named roles —</span>
+<span class="sd">``Planner / Formulator / Retriever / Evaluator / Reranker / Citer`` — and a loop</span>
+<span class="sd">whose defining feature is the **back-edge** (evaluator → reformulate) that makes</span>
+<span class="sd">it an *agent* rather than a DAG. v1 ships the loop with smart defaults (a trivial</span>
+<span class="sd">planner + a pass-through evaluator), so the thin slice runs end-to-end with no</span>
+<span class="sd">LLM; turning on the back-edge is just injecting an LLM ``Evaluator`` that returns</span>
+<span class="sd">a ``refinement`` (ir_09 §8 step 3).</span>
+
+<span class="sd">Progressive disclosure: :func:`make_search_agent` gives sensible defaults for</span>
+<span class="sd">every role, so the simple path is ``make_search_agent(sources)(&quot;query&quot;)``.</span>
+
+<span class="sd">Dependency direction is one-way: `raglab` imports `ir`; `ir` never imports</span>
+<span class="sd">`raglab`. The ``Result`` type and the ``Retriever`` contract are ir&#39;s (SSOT).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
+
+<span class="c1"># ir owns the retrieval substrate: the Result type and the Retriever leaf</span>
+<span class="c1"># contract live there (one-way dependency, ir is the SSOT).</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retriever</span><span class="p">,</span> <span class="n">SearchHit</span>
+
+<span class="c1">#: A retrieved item — ir&#39;s :class:`~ir.base.SearchHit` (ir_09&#39;s ``Result``):</span>
+<span class="c1">#: a *pointer + snippet* (``text``) with a ``score`` and ``metadata``.</span>
+<span class="n">Result</span> <span class="o">=</span> <span class="n">SearchHit</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Query&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SubTask&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LowLevelQuery&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Judgement&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Result&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Retriever&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Planner&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Formulator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Evaluator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Reranker&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Citer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Budget&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SingleContextAgent&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_search_agent&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ir_sources&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;single_subtask_planner&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;identity_formulator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;passthrough_evaluator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;score_reranker&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;identity_citer&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># Value types (immutable, plain data) — ir_09 §3</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="Query">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Query">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Query</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A user intent: free text plus optional structured constraints.&quot;&quot;&quot;</span>
+
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SubTask">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.SubTask">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SubTask</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A planner&#39;s unit of work: a sub-goal bound to a set of registered sources.&quot;&quot;&quot;</span>
+
+    <span class="n">goal</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="LowLevelQuery">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.LowLevelQuery">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LowLevelQuery</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One concrete query against one source.</span>
+
+<span class="sd">    ``query`` is the text handed to the source&#39;s :data:`Retriever`; ``params``</span>
+<span class="sd">    are per-call retriever overrides (e.g. ``mode`` / ``filter`` / ``k`` for an</span>
+<span class="sd">    ir corpus). A formulator turns a :class:`SubTask` into these.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">query</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Judgement">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Judgement">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Judgement</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An evaluator&#39;s verdict over a round&#39;s results.</span>
+
+<span class="sd">    ``relevant`` is the kept subset; ``sufficient`` says whether to stop; a</span>
+<span class="sd">    non-``None`` ``refinement`` is the **back-edge** — the next sub-task to</span>
+<span class="sd">    re-query with. The pass-through default returns ``sufficient=True`` and no</span>
+<span class="sd">    refinement (no loop).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span>
+    <span class="n">sufficient</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">refinement</span><span class="p">:</span> <span class="n">SubTask</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># Role Protocols (the open-closed strategy seams) — ir_09 §3</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="Planner">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Planner">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Planner</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decompose a query into sub-tasks and select sources for each.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Query</span><span class="p">,</span> <span class="n">sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SubTask</span><span class="p">]:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="Formulator">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Formulator">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Formulator</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Turn a sub-task + one source into concrete low-level queries.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">]:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="Evaluator">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Evaluator">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Evaluator</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Judge relevance + sufficiency; optionally emit a refinement (back-edge).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Judgement</span><span class="p">:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="Reranker">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Reranker">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Reranker</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Produce the final ordering over the (cross-source) merged results.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="Citer">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Citer">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Citer</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Confirm/annotate that each result supports its use (identity by default).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span> <span class="o">...</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># Budget governor — ir_09 §4</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="Budget">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.Budget">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Budget</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Loop bounds: the safety net under the (harder) sufficiency decision.&quot;&quot;&quot;</span>
+
+    <span class="n">max_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">max_sources_per_task</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">max_results_per_task</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># Default role implementations (the no-LLM thin slice) — ir_09 §8 step 2</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="single_subtask_planner">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.single_subtask_planner">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">single_subtask_planner</span><span class="p">(</span>
+    <span class="n">query</span><span class="p">:</span> <span class="n">Query</span><span class="p">,</span> <span class="n">sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">SubTask</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Trivial planner: one sub-task over *all* registered sources, no decomposition.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">SubTask</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">query</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sources</span><span class="p">))]</span></div>
+
+
+
+<div class="viewcode-block" id="identity_formulator">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.identity_formulator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identity_formulator</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">)]</span></div>
+
+
+
+<div class="viewcode-block" id="passthrough_evaluator">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.passthrough_evaluator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">passthrough_evaluator</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Judgement</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pass-through critic: keep everything, declare sufficient, never re-query.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Judgement</span><span class="p">(</span><span class="n">relevant</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">results</span><span class="p">),</span> <span class="n">sufficient</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refinement</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="score_reranker">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.score_reranker">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">score_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Final ordering by descending ``score`` (the cross-source merge, v1).</span>
+
+<span class="sd">    Note: a plain score sort assumes comparable score scales across sources</span>
+<span class="sd">    (true when they share an embedder + mode). A rank-based (RRF) cross-source</span>
+<span class="sd">    merge for heterogeneous backends is a documented follow-up.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="identity_citer">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.identity_citer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identity_citer</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;No-op citer (verification needs a generated claim — that lives in srag).&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># The orchestrator — a fixed control loop, fully parametrized by roles</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="SingleContextAgent">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.SingleContextAgent">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SingleContextAgent</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).</span>
+
+<span class="sd">    The loop is fixed; every *decision* is an injected role. Promotion to a</span>
+<span class="sd">    multi-agent orchestrator (ir_09 §7) swaps this class while keeping the same</span>
+<span class="sd">    role contracts. The **back-edge** is the single line ``current =</span>
+<span class="sd">    judged.refinement`` in :meth:`_run_task` — that is what makes this an agent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">]</span>
+    <span class="n">planner</span><span class="p">:</span> <span class="n">Planner</span> <span class="o">=</span> <span class="n">single_subtask_planner</span>
+    <span class="n">formulator</span><span class="p">:</span> <span class="n">Formulator</span> <span class="o">=</span> <span class="n">identity_formulator</span>
+    <span class="n">evaluator</span><span class="p">:</span> <span class="n">Evaluator</span> <span class="o">=</span> <span class="n">passthrough_evaluator</span>
+    <span class="n">reranker</span><span class="p">:</span> <span class="n">Reranker</span> <span class="o">=</span> <span class="n">score_reranker</span>
+    <span class="n">citer</span><span class="p">:</span> <span class="n">Citer</span> <span class="o">=</span> <span class="n">identity_citer</span>
+    <span class="n">budget</span><span class="p">:</span> <span class="n">Budget</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Budget</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Query</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run the agent for *query*; returns the final ranked, cited results.&quot;&quot;&quot;</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">query</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">Query</span><span class="p">)</span> <span class="k">else</span> <span class="n">Query</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">accumulated</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">planner</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">):</span>
+            <span class="n">accumulated</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_task</span><span class="p">(</span><span class="n">task</span><span class="p">))</span>
+        <span class="n">ranked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reranker</span><span class="p">(</span><span class="n">accumulated</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">citer</span><span class="p">(</span><span class="n">ranked</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+        <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">task</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_rounds</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">current</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_sources_per_task</span><span class="p">]:</span>
+                <span class="n">retriever</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">retriever</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">llq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">formulator</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+                    <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">retriever</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">params</span><span class="p">)))</span>
+            <span class="n">judged</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">found</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_results_per_task</span><span class="p">])</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">judged</span><span class="o">.</span><span class="n">relevant</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">judged</span><span class="o">.</span><span class="n">sufficient</span> <span class="ow">or</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span>  <span class="c1"># the back-edge: re-query</span>
+        <span class="k">return</span> <span class="n">found</span></div>
+
+
+
+<div class="viewcode-block" id="make_search_agent">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.make_search_agent">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_search_agent</span><span class="p">(</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">planner</span><span class="p">:</span> <span class="n">Planner</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">formulator</span><span class="p">:</span> <span class="n">Formulator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">evaluator</span><span class="p">:</span> <span class="n">Evaluator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">reranker</span><span class="p">:</span> <span class="n">Reranker</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">citer</span><span class="p">:</span> <span class="n">Citer</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">budget</span><span class="p">:</span> <span class="n">Budget</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SingleContextAgent</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a :class:`SingleContextAgent` over *sources* with smart defaults.</span>
+
+<span class="sd">    ``sources`` is a ``Mapping[name, Retriever]`` — e.g.</span>
+<span class="sd">    ``{&quot;skills&quot;: ir.as_retriever(&quot;skills&quot;)}``. Every role defaults to its no-LLM</span>
+<span class="sd">    thin-slice implementation, so ``make_search_agent(sources)(&quot;query&quot;)`` just</span>
+<span class="sd">    works; inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and</span>
+<span class="sd">    the back-edge.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">SingleContextAgent</span><span class="p">(</span>
+        <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span>
+        <span class="n">planner</span><span class="o">=</span><span class="n">planner</span> <span class="ow">or</span> <span class="n">single_subtask_planner</span><span class="p">,</span>
+        <span class="n">formulator</span><span class="o">=</span><span class="n">formulator</span> <span class="ow">or</span> <span class="n">identity_formulator</span><span class="p">,</span>
+        <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span> <span class="ow">or</span> <span class="n">passthrough_evaluator</span><span class="p">,</span>
+        <span class="n">reranker</span><span class="o">=</span><span class="n">reranker</span> <span class="ow">or</span> <span class="n">score_reranker</span><span class="p">,</span>
+        <span class="n">citer</span><span class="o">=</span><span class="n">citer</span> <span class="ow">or</span> <span class="n">identity_citer</span><span class="p">,</span>
+        <span class="n">budget</span><span class="o">=</span><span class="n">budget</span> <span class="ow">or</span> <span class="n">Budget</span><span class="p">(),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ir_sources">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.ir_sources">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ir_sources</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">search_defaults</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A source registry ``{name: Retriever}`` backed by named ``ir`` corpora.</span>
+
+<span class="sd">    Each name is bound to ``ir.as_retriever(name, **search_defaults)``. A thin</span>
+<span class="sd">    convenience; once ir ships ``registry.retrievers()`` (a lazy view), prefer</span>
+<span class="sd">    that. ``search_defaults`` (e.g. ``mode=&quot;hybrid&quot;``) apply to every source.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">ir</span><span class="o">.</span><span class="n">as_retriever</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">search_defaults</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">}</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
