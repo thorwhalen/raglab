@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>raglab.agent &mdash; raglab 0.2.1 documentation</title>
+  <title>raglab.agent &mdash; raglab 0.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -48,6 +48,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab.html">raglab</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab/agent.html">raglab.agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab/llm.html">raglab.llm</a></li>
 </ul>
 
         </div>
@@ -107,6 +108,7 @@
 <span class="c1"># ir owns the retrieval substrate: the Result type and the Retriever leaf</span>
 <span class="c1"># contract live there (one-way dependency, ir is the SSOT).</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retriever</span><span class="p">,</span> <span class="n">SearchHit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">best_per_artifact</span>
 
 <span class="c1">#: A retrieved item — ir&#39;s :class:`~ir.base.SearchHit` (ir_09&#39;s ``Result``):</span>
 <span class="c1">#: a *pointer + snippet* (``text``) with a ``score`` and ``metadata``.</span>
@@ -306,13 +308,19 @@
 <div class="viewcode-block" id="score_reranker">
 <a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.score_reranker">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Final ordering by descending ``score`` (the cross-source merge, v1).</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cross-source merge (v1): one surface per artifact, ordered by descending score.</span>
+
+<span class="sd">    Delegates to :func:`ir.base.best_per_artifact` (ir is the SSOT for hit</span>
+<span class="sd">    operations): an artifact retrieved by several queries / sources / rounds —</span>
+<span class="sd">    common once the back-edge re-queries — survives once, at its highest score, so</span>
+<span class="sd">    the merged list carries no duplicate ``artifact_id``. Also the evaluator&#39;s</span>
+<span class="sd">    pre-selection rank, so :func:`ir.select` never sees duplicates either.</span>
 
 <span class="sd">    Note: a plain score sort assumes comparable score scales across sources</span>
 <span class="sd">    (true when they share an embedder + mode). A rank-based (RRF) cross-source</span>
 <span class="sd">    merge for heterogeneous backends is a documented follow-up.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">&quot;score&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">best_per_artifact</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
 
 
 

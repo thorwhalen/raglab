@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>raglab.agent &mdash; raglab 0.2.1 documentation</title>
+  <title>raglab.agent &mdash; raglab 0.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=37f418d5"></script>
+      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -24,6 +24,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="raglab.llm" href="llm.html" />
     <link rel="prev" title="raglab" href="../raglab.html" /> 
 </head>
 
@@ -78,6 +79,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="llm.html">raglab.llm</a></li>
 </ul>
 
         </div>
@@ -226,7 +228,12 @@ role contracts. The <strong>back-edge</strong> is the single line <code class="d
 <dl class="py method">
 <dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.reranker">
 <span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.reranker" title="Link to this definition"></a></dt>
-<dd><p>Final ordering by descending <code class="docutils literal notranslate"><span class="pre">score</span></code> (the cross-source merge, v1).</p>
+<dd><p>Cross-source merge (v1): one surface per artifact, ordered by descending score.</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> (ir is the SSOT for hit
+operations): an artifact retrieved by several queries / sources / rounds —
+common once the back-edge re-queries — survives once, at its highest score, so
+the merged list carries no duplicate <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>. Also the evaluator’s
+pre-selection rank, so <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code> never sees duplicates either.</p>
 <p>Note: a plain score sort assumes comparable score scales across sources
 (true when they share an embedder + mode). A rank-based (RRF) cross-source
 merge for heterogeneous backends is a documented follow-up.</p>
@@ -281,7 +288,12 @@ the back-edge.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="raglab.agent.score_reranker">
 <span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">score_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#score_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.score_reranker" title="Link to this definition"></a></dt>
-<dd><p>Final ordering by descending <code class="docutils literal notranslate"><span class="pre">score</span></code> (the cross-source merge, v1).</p>
+<dd><p>Cross-source merge (v1): one surface per artifact, ordered by descending score.</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> (ir is the SSOT for hit
+operations): an artifact retrieved by several queries / sources / rounds —
+common once the back-edge re-queries — survives once, at its highest score, so
+the merged list carries no duplicate <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>. Also the evaluator’s
+pre-selection rank, so <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code> never sees duplicates either.</p>
 <p>Note: a plain score sort assumes comparable score scales across sources
 (true when they share an embedder + mode). A rank-based (RRF) cross-source
 merge for heterogeneous backends is a documented follow-up.</p>
@@ -300,6 +312,7 @@ merge for heterogeneous backends is a documented follow-up.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../raglab.html" class="btn btn-neutral float-left" title="raglab" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="llm.html" class="btn btn-neutral float-right" title="raglab.llm" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

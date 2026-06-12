@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>raglab.llm &mdash; raglab 0.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
+      <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            raglab
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab.html">raglab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab/agent.html">raglab.agent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../module_docs/raglab/llm.html">raglab.llm</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">raglab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">raglab.llm</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for raglab.llm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).</span>
+
+<span class="sd">`raglab`&#39;s no-LLM thin slice (:mod:`raglab.agent`) runs offline: an identity</span>
+<span class="sd">formulator and a pass-through evaluator. This module supplies the two LLM roles</span>
+<span class="sd">that turn that slice into a real agent — query understanding and the back-edge:</span>
+
+<span class="sd">- :func:`make_llm_formulator` — query rewrite / expand / HyDE. A thin adapter</span>
+<span class="sd">  over ir&#39;s :func:`ir.make_llm_formulator` (the ``formulate=`` seam, ir_09 §3):</span>
+<span class="sd">  ir owns the lazy-:mod:`oa` rewriter and the identity fallback; raglab only</span>
+<span class="sd">  adapts the shape ``str -&gt; str | [str]`` to the role contract</span>
+<span class="sd">  ``(SubTask, source) -&gt; [LowLevelQuery]``.</span>
+<span class="sd">- :func:`make_llm_evaluator` — sufficiency + refinement. ``ir.select`` owns the</span>
+<span class="sd">  *relevance* decision (the calibrated committed subset, ir_09 §3); the LLM owns</span>
+<span class="sd">  *sufficiency* — informed by ir&#39;s model-free :attr:`ir.Selection.sufficient`</span>
+<span class="sd">  hint, it judges whether the committed subset actually satisfies the goal and,</span>
+<span class="sd">  when it does not, emits a ``refinement`` SubTask. That refinement is the</span>
+<span class="sd">  **back-edge** that makes the loop an agent rather than a DAG.</span>
+
+<span class="sd">Two load-bearing boundaries (ir ↔ raglab), guarded here:</span>
+
+<span class="sd">1. A Formulator returns **queries, never SubTasks** — decomposition is the</span>
+<span class="sd">   Planner&#39;s job. :func:`make_llm_formulator` only ever yields</span>
+<span class="sd">   :class:`~raglab.agent.LowLevelQuery`\\ s.</span>
+<span class="sd">2. The **back-edge lives in raglab**, never in ir: ir derives a ``sufficient``</span>
+<span class="sd">   *signal* from its own selection; raglab&#39;s Evaluator is what reads it, decides,</span>
+<span class="sd">   and re-queries.</span>
+
+<span class="sd">Both builders mirror :func:`ir.select.make_llm_selector`: an injectable callable</span>
+<span class="sd">(a test double, or your own router), built lazily on :mod:`oa` only when omitted</span>
+<span class="sd">(so ``import raglab`` stays offline), with a **safe fallback** — a formulator must</span>
+<span class="sd">never make retrieval worse than the raw query, and an evaluator must never</span>
+<span class="sd">fabricate an endless loop (on any failure it returns no refinement, which is the</span>
+<span class="sd">loop&#39;s break condition).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Evaluator</span><span class="p">,</span>
+    <span class="n">Formulator</span><span class="p">,</span>
+    <span class="n">Judgement</span><span class="p">,</span>
+    <span class="n">LowLevelQuery</span><span class="p">,</span>
+    <span class="n">Result</span><span class="p">,</span>
+    <span class="n">SubTask</span><span class="p">,</span>
+    <span class="n">score_reranker</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;make_llm_formulator&quot;</span><span class="p">,</span> <span class="s2">&quot;make_llm_evaluator&quot;</span><span class="p">,</span> <span class="s2">&quot;EVALUATION_PROMPT&quot;</span><span class="p">]</span>
+
+<span class="c1">#: An ir-style query formulator: a query string -&gt; one query or several.</span>
+<span class="n">QueryFormulator</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="s2">&quot;str | Sequence[str]&quot;</span><span class="p">]</span>
+
+<span class="c1">#: An evaluator judge: ``(goal, results) -&gt; (sufficient, refinement)``.</span>
+<span class="c1">#: ``sufficient`` ends the loop; a non-empty ``refinement`` query becomes the</span>
+<span class="c1">#: next sub-goal (the back-edge). A raw text reply is also accepted and parsed.</span>
+<span class="n">Judge</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;tuple[bool, str | None] | str&quot;</span><span class="p">]</span>
+
+<span class="c1">#: Truncate each rendered result&#39;s text to this many chars in the judge prompt.</span>
+<span class="n">DFLT_MAX_RESULT_CHARS</span> <span class="o">=</span> <span class="mi">500</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># LLM Formulator — adapt ir&#39;s query-level formulator to the role contract</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+
+<div class="viewcode-block" id="make_llm_formulator">
+<a class="viewcode-back" href="../../module_docs/raglab/llm.html#raglab.make_llm_formulator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_llm_formulator</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">formulate</span><span class="p">:</span> <span class="n">QueryFormulator</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">make_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Formulator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An LLM-backed raglab :class:`~raglab.agent.Formulator`.</span>
+
+<span class="sd">    Adapts an ir-style query formulator (``str -&gt; str | [str]``) to the role</span>
+<span class="sd">    contract ``(SubTask, source) -&gt; [LowLevelQuery]``: the sub-goal text is</span>
+<span class="sd">    rewritten / expanded into one or more search queries, each wrapped as a</span>
+<span class="sd">    :class:`~raglab.agent.LowLevelQuery` against ``source``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        formulate: an injectable ir-style formulator (a test double, or one you</span>
+<span class="sd">            built). When omitted it is built once via</span>
+<span class="sd">            :func:`ir.make_llm_formulator` (``**make_kwargs`` are forwarded —</span>
+<span class="sd">            e.g. ``n``, ``prompt``, ``rewriter``); that call is offline (``oa`` is</span>
+<span class="sd">            imported lazily only when the formulator is *invoked*), so</span>
+<span class="sd">            ``import raglab`` stays offline.</span>
+<span class="sd">        params: per-call retriever overrides (e.g. ``{&quot;mode&quot;: &quot;hybrid&quot;, &quot;k&quot;: 5}``)</span>
+<span class="sd">            attached to every emitted :class:`~raglab.agent.LowLevelQuery`.</span>
+
+<span class="sd">    The boundary: this returns **queries, never SubTasks**. ir&#39;s formulator</span>
+<span class="sd">    already falls back to identity on any failure, so the emitted list is never</span>
+<span class="sd">    empty — a formulator must never make retrieval worse than the raw sub-goal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">extra</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">params</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">fn</span><span class="p">:</span> <span class="n">QueryFormulator</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">formulate</span> <span class="k">if</span> <span class="n">formulate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ir</span><span class="o">.</span><span class="n">make_llm_formulator</span><span class="p">(</span><span class="o">**</span><span class="n">make_kwargs</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">formulator</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># a formulator must never make retrieval worse: fall back</span>
+        <span class="n">queries</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="n">queries</span> <span class="o">=</span> <span class="p">[</span><span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">queries</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="ow">or</span> <span class="p">[</span>
+            <span class="n">task</span><span class="o">.</span><span class="n">goal</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">LowLevelQuery</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">extra</span><span class="p">))</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">queries</span>
+        <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">formulator</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+<span class="c1"># LLM Evaluator — ir.select owns relevance; the LLM owns sufficiency + the</span>
+<span class="c1"># back-edge (ir_09 §3/§4)</span>
+<span class="c1"># --------------------------------------------------------------------------- #</span>
+
+<span class="c1">#: Default prompt for :func:`make_llm_evaluator` — judge sufficiency, else emit a</span>
+<span class="c1">#: single improved query (the refinement that drives the back-edge).</span>
+<span class="n">EVALUATION_PROMPT</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">A search agent is pursuing this goal:</span>
+
+<span class="si">{goal}</span>
+
+<span class="s2">A calibrated selector reviewed the retrieved candidates and committed to the</span>
+<span class="s2">results below (it abstained if this list is empty):</span>
+
+<span class="si">{results}</span>
+
+<span class="s2">Decide whether these results are SUFFICIENT to satisfy the goal.</span>
+<span class="s2">- If they are, reply with exactly: SUFFICIENT</span>
+<span class="s2">- If they are not, reply with: INSUFFICIENT</span>
+<span class="s2">  then, on the next line, a single improved search query that would retrieve what</span>
+<span class="s2">  is still missing. Keep it a terse search phrase — no prose, no numbering.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="make_llm_evaluator">
+<a class="viewcode-back" href="../../module_docs/raglab/llm.html#raglab.make_llm_evaluator">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_llm_evaluator</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">judge</span><span class="p">:</span> <span class="n">Judge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">select_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;conservative&quot;</span><span class="p">,</span>
+    <span class="n">select_kwargs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">EVALUATION_PROMPT</span><span class="p">,</span>
+    <span class="n">max_result_chars</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_RESULT_CHARS</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">prompt_function_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Evaluator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An LLM-backed raglab :class:`~raglab.agent.Evaluator` (turns on the back-edge).</span>
+
+<span class="sd">    Relevance is ir&#39;s: each round the accumulated results are passed through</span>
+<span class="sd">    :func:`ir.select` and the committed subset becomes the ``Judgement.relevant``</span>
+<span class="sd">    (so the LLM stays in its lane — LLM relevance is known-fragile, ir_01 §3).</span>
+<span class="sd">    Sufficiency is the LLM&#39;s: it reads the committed subset (informed by ir&#39;s</span>
+<span class="sd">    model-free :attr:`~ir.Selection.sufficient` hint via abstention) and decides</span>
+<span class="sd">    whether the goal is satisfied. When it is not, the judge&#39;s improved query</span>
+<span class="sd">    becomes a ``refinement`` :class:`~raglab.agent.SubTask` over the same sources</span>
+<span class="sd">    — the **back-edge**.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        judge: an injectable ``(goal, results) -&gt; (sufficient, refinement)``</span>
+<span class="sd">            callable (a test double, or your own router); a raw text reply is also</span>
+<span class="sd">            accepted and parsed. When omitted it is built lazily on :mod:`oa`.</span>
+<span class="sd">        select_strategy: ir selection strategy for the relevance decision</span>
+<span class="sd">            (default ``&quot;conservative&quot;`` — distractor-robust).</span>
+<span class="sd">        select_kwargs: extra args forwarded to :func:`ir.select`</span>
+<span class="sd">            (e.g. ``max_k``, ``rel``, ``min_score``).</span>
+<span class="sd">        max_result_chars: per-result text truncation in the judge prompt.</span>
+
+<span class="sd">    Safe fallback: any judge error returns ``refinement=None`` — the control</span>
+<span class="sd">    loop&#39;s break condition — so a failing judge can never fabricate an endless</span>
+<span class="sd">    loop. Sufficiency without a refinement query is likewise treated as a stop.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sel_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">select_kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ask_judge</span><span class="p">(</span><span class="n">goal</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rendered</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">judge</span>
+            <span class="k">if</span> <span class="n">judge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">_default_llm_judge</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="o">**</span><span class="n">prompt_function_kwargs</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">_normalize_verdict</span><span class="p">(</span><span class="n">fn</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">goal</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="n">rendered</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">evaluator</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Judgement</span><span class="p">:</span>
+        <span class="c1"># ``ir.select`` documents a best-first precondition; the loop accumulates</span>
+        <span class="c1"># hits across rounds/sources in arbitrary order, so rank them first (the</span>
+        <span class="c1"># same score ordering the final reranker uses).</span>
+        <span class="n">ranked</span> <span class="o">=</span> <span class="n">score_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ranked</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">select_strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">sel_kw</span><span class="p">)</span>
+        <span class="n">relevant</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">selected</span><span class="p">)</span>
+        <span class="n">rendered</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_render_results</span><span class="p">(</span><span class="n">relevant</span><span class="p">,</span> <span class="n">max_result_chars</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">relevant</span>
+            <span class="k">else</span> <span class="s2">&quot;(none — the selector abstained)&quot;</span>
+        <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sufficient</span><span class="p">,</span> <span class="n">refinement</span> <span class="o">=</span> <span class="n">_ask_judge</span><span class="p">(</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span> <span class="n">rendered</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># Trust ir&#39;s model-free signal for the report, but never re-query on a</span>
+            <span class="c1"># judge failure: refinement=None is the loop&#39;s break condition.</span>
+            <span class="k">return</span> <span class="n">Judgement</span><span class="p">(</span>
+                <span class="n">relevant</span><span class="o">=</span><span class="n">relevant</span><span class="p">,</span> <span class="n">sufficient</span><span class="o">=</span><span class="n">selection</span><span class="o">.</span><span class="n">sufficient</span><span class="p">,</span> <span class="n">refinement</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sufficient</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">refinement</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Judgement</span><span class="p">(</span><span class="n">relevant</span><span class="o">=</span><span class="n">relevant</span><span class="p">,</span> <span class="n">sufficient</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">refinement</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Judgement</span><span class="p">(</span>
+            <span class="n">relevant</span><span class="o">=</span><span class="n">relevant</span><span class="p">,</span>
+            <span class="n">sufficient</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">refinement</span><span class="o">=</span><span class="n">SubTask</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">refinement</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">sources</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">evaluator</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_render_results</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">],</span> <span class="n">max_chars</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Render committed hits as ``- id: text`` lines for the judge prompt.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">h</span><span class="o">.</span><span class="n">artifact_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">text</span><span class="p">)[:</span><span class="n">max_chars</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_verdict</span><span class="p">(</span><span class="n">out</span><span class="p">:</span> <span class="s2">&quot;tuple[bool, str | None] | str&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Coerce a judge reply (a ``(sufficient, refinement)`` tuple, or raw text).&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">sufficient</span><span class="p">,</span> <span class="n">refinement</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="n">refinement</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">refinement</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">refinement</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">sufficient</span><span class="p">),</span> <span class="p">(</span><span class="n">refinement</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_parse_verdict</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">out</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_verdict</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a SUFFICIENT / INSUFFICIENT + refinement-query text reply.&quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">lines</span> <span class="ow">or</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;SUFFICIENT&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">refinement</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="n">refinement</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_llm_judge</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">prompt_function_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Judge</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the default sufficiency judge on :mod:`oa` (lazy import).&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">oa</span>
+
+    <span class="n">fn</span> <span class="o">=</span> <span class="n">oa</span><span class="o">.</span><span class="n">prompt_function</span><span class="p">(</span>
+        <span class="n">prompt</span><span class="p">,</span>
+        <span class="n">egress</span><span class="o">=</span><span class="n">_parse_verdict</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;evaluate_sufficiency&quot;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">prompt_function_kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">judge</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">goal</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">goal</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="n">results</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">judge</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright NO COPYRIGHT.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
