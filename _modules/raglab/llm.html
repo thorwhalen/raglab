@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>raglab.llm &mdash; raglab 0.2.2 documentation</title>
+  <title>raglab.llm &mdash; raglab 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
+      <script src="../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -117,15 +117,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">best_per_artifact</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.agent</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">Evaluator</span><span class="p">,</span>
     <span class="n">Formulator</span><span class="p">,</span>
     <span class="n">Judgement</span><span class="p">,</span>
     <span class="n">LowLevelQuery</span><span class="p">,</span>
+    <span class="n">Reranker</span><span class="p">,</span>
     <span class="n">Result</span><span class="p">,</span>
     <span class="n">SubTask</span><span class="p">,</span>
-    <span class="n">score_reranker</span><span class="p">,</span>
+    <span class="n">rrf_reranker</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;make_llm_formulator&quot;</span><span class="p">,</span> <span class="s2">&quot;make_llm_evaluator&quot;</span><span class="p">,</span> <span class="s2">&quot;EVALUATION_PROMPT&quot;</span><span class="p">]</span>
@@ -230,6 +232,7 @@
     <span class="n">judge</span><span class="p">:</span> <span class="n">Judge</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">select_strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;conservative&quot;</span><span class="p">,</span>
     <span class="n">select_kwargs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">prerank</span><span class="p">:</span> <span class="n">Reranker</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">EVALUATION_PROMPT</span><span class="p">,</span>
     <span class="n">max_result_chars</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_MAX_RESULT_CHARS</span><span class="p">,</span>
     <span class="o">**</span><span class="n">prompt_function_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -252,7 +255,19 @@
 <span class="sd">        select_strategy: ir selection strategy for the relevance decision</span>
 <span class="sd">            (default ``&quot;conservative&quot;`` — distractor-robust).</span>
 <span class="sd">        select_kwargs: extra args forwarded to :func:`ir.select`</span>
-<span class="sd">            (e.g. ``max_k``, ``rel``, ``min_score``).</span>
+<span class="sd">            (e.g. ``max_k``, ``rel``). ``min_score`` is allowed only while the</span>
+<span class="sd">            round&#39;s pool keeps raw scores (single-source, or</span>
+<span class="sd">            ``prerank=score_reranker``): an absolute floor is per-(corpus,</span>
+<span class="sd">            mode, embedder), so a round whose pool was rank-fused across</span>
+<span class="sd">            sources **raises** rather than silently mass-abstaining on</span>
+<span class="sd">            ordinal RRF scores.</span>
+<span class="sd">        prerank: the per-round merge that puts the accumulated pool best-first</span>
+<span class="sd">            (and deduped) before ``ir.select``. Defaults to</span>
+<span class="sd">            :func:`~raglab.agent.rrf_reranker` — a round&#39;s pool can already mix</span>
+<span class="sd">            sources (a SubTask spans several), so the same rank-based,</span>
+<span class="sd">            scale-safe merge as the fan-in applies; single-source rounds keep</span>
+<span class="sd">            raw scores. Inject :func:`~raglab.agent.score_reranker` for</span>
+<span class="sd">            sources known to share one score scale.</span>
 <span class="sd">        max_result_chars: per-result text truncation in the judge prompt.</span>
 
 <span class="sd">    Safe fallback: any judge error returns ``refinement=None`` — the control</span>
@@ -260,6 +275,10 @@
 <span class="sd">    loop. Sufficiency without a refinement query is likewise treated as a stop.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">sel_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">select_kwargs</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="c1"># The floor is handled here, not blindly forwarded: it must only ever meet</span>
+    <span class="c1"># raw (per-source-scale) scores — see the guard in the evaluator below.</span>
+    <span class="n">floor</span> <span class="o">=</span> <span class="n">sel_kw</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;min_score&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">prerank</span> <span class="o">=</span> <span class="n">prerank</span> <span class="ow">or</span> <span class="n">rrf_reranker</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_ask_judge</span><span class="p">(</span><span class="n">goal</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">rendered</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="p">(</span>
@@ -271,11 +290,32 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">evaluator</span><span class="p">(</span><span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Judgement</span><span class="p">:</span>
         <span class="c1"># ``ir.select`` documents a best-first precondition; the loop accumulates</span>
-        <span class="c1"># hits across rounds/sources in arbitrary order, so rank them first (the</span>
-        <span class="c1"># same score ordering the final reranker uses).</span>
-        <span class="n">ranked</span> <span class="o">=</span> <span class="n">score_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-        <span class="n">selection</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ranked</span><span class="p">),</span> <span class="n">strategy</span><span class="o">=</span><span class="n">select_strategy</span><span class="p">,</span> <span class="o">**</span><span class="n">sel_kw</span><span class="p">)</span>
-        <span class="n">relevant</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selection</span><span class="o">.</span><span class="n">selected</span><span class="p">)</span>
+        <span class="c1"># hits across rounds/sources in arbitrary order, so merge them first —</span>
+        <span class="c1"># the same (scale-safe) merge the final fan-in reranker uses.</span>
+        <span class="n">ranked</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">prerank</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">floor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="s2">&quot;source_rank&quot;</span> <span class="ow">in</span> <span class="n">h</span><span class="o">.</span><span class="n">metadata</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">):</span>
+            <span class="c1"># fuse_hits stamps source_rank exactly when it fused: the pool</span>
+            <span class="c1"># spans sources, so the scores below are ordinal RRF values — an</span>
+            <span class="c1"># absolute floor against them is the mis-scaled comparison ir</span>
+            <span class="c1"># refuses loudly (ir_07). Never silently mass-abstain.</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;min_score with a multi-source round: the pool was rank-fused, &quot;</span>
+                <span class="s2">&quot;so an absolute floor would compare against ordinal RRF scores. &quot;</span>
+                <span class="s2">&quot;Floors are per-(corpus, mode, embedder) — drop min_score, or &quot;</span>
+                <span class="s2">&quot;inject prerank=score_reranker for sources known to share one &quot;</span>
+                <span class="s2">&quot;score scale.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="n">ranked</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">select_strategy</span><span class="p">,</span> <span class="n">min_score</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="o">**</span><span class="n">sel_kw</span>
+        <span class="p">)</span>
+        <span class="c1"># Map the committed subset back to the PRE-fusion originals: fused</span>
+        <span class="c1"># (ordinal) scores are local to this selection. ``Judgement.relevant``</span>
+        <span class="c1"># re-enters the loop&#39;s pool and the final fan-in re-fuses it, so it</span>
+        <span class="c1"># must carry raw per-source magnitudes — otherwise round N+1 compares</span>
+        <span class="c1"># round N&#39;s fused scores against raw ones inside one source group,</span>
+        <span class="c1"># and ``source_score`` gets overwritten by an already-fused value.</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="p">{(</span><span class="n">h</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">artifact_id</span><span class="p">):</span> <span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">best_per_artifact</span><span class="p">(</span><span class="n">results</span><span class="p">)}</span>
+        <span class="n">relevant</span> <span class="o">=</span> <span class="p">[</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">h</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">h</span><span class="o">.</span><span class="n">artifact_id</span><span class="p">),</span> <span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">selection</span><span class="o">.</span><span class="n">selected</span><span class="p">]</span>
         <span class="n">rendered</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">_render_results</span><span class="p">(</span><span class="n">relevant</span><span class="p">,</span> <span class="n">max_result_chars</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">relevant</span>

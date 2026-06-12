@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>raglab.agent &mdash; raglab 0.2.2 documentation</title>
+  <title>raglab.agent &mdash; raglab 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
+      <script src="../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -73,8 +73,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.identity_citer"><code class="docutils literal notranslate"><span class="pre">identity_citer()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.identity_formulator"><code class="docutils literal notranslate"><span class="pre">identity_formulator()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.ir_sources"><code class="docutils literal notranslate"><span class="pre">ir_sources()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.make_rrf_reranker"><code class="docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.make_search_agent"><code class="docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.passthrough_evaluator"><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#raglab.agent.rrf_reranker"><code class="docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.score_reranker"><code class="docutils literal notranslate"><span class="pre">score_reranker()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#raglab.agent.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
 </ul>
@@ -114,6 +116,13 @@ This module is the v1 foundation: the immutable value types, the role <em>Protoc
 (open-closed strategy seams), and a <cite>SingleContextAgent</cite> whose fixed control loop
 is fully parametrized by injected roles. Concrete tools live at the leaves — an
 <cite>ir</cite> corpus becomes one <cite>Retriever</cite> via <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.as_retriever()</span></code>.</p>
+<p>The agent is <strong>multi-source by default</strong>: the loop stamps each hit’s
+provenance (<code class="docutils literal notranslate"><span class="pre">hit.source</span></code>), and the fan-in <a class="reference internal" href="#raglab.agent.Reranker" title="raglab.agent.Reranker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reranker</span></code></a> —
+<a class="reference internal" href="#raglab.agent.rrf_reranker" title="raglab.agent.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a> — merges heterogeneous sources by <em>rank</em>, never by raw
+score (scores from different corpora / embedders / modes are incommensurable;
+ir_07/ir_08). Raw magnitudes order and dedup hits <em>within</em> one source, and the
+loop’s pool always carries them; fused (ordinal) scores appear only at the
+fan-in boundary.</p>
 <p>The shape follows ir_09 §3/§6: a small set of named roles —
 <code class="docutils literal notranslate"><span class="pre">Planner</span> <span class="pre">/</span> <span class="pre">Formulator</span> <span class="pre">/</span> <span class="pre">Retriever</span> <span class="pre">/</span> <span class="pre">Evaluator</span> <span class="pre">/</span> <span class="pre">Reranker</span> <span class="pre">/</span> <span class="pre">Citer</span></code> — and a loop
 whose defining feature is the <strong>back-edge</strong> (evaluator → reformulate) that makes
@@ -195,7 +204,7 @@ a <em>pointer + snippet</em> (<code class="docutils literal notranslate"><span c
 
 <dl class="py class">
 <dt class="sig sig-object py" id="raglab.agent.SingleContextAgent">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">SingleContextAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">sources:</span> <span class="pre">~collections.abc.Mapping[str,</span> <span class="pre">~typing.Callable[[...],</span> <span class="pre">list[~ir.base.SearchHit]]],</span> <span class="pre">planner:</span> <span class="pre">~raglab.agent.Planner</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">single_subtask_planner&gt;,</span> <span class="pre">formulator:</span> <span class="pre">~raglab.agent.Formulator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_formulator&gt;,</span> <span class="pre">evaluator:</span> <span class="pre">~raglab.agent.Evaluator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">passthrough_evaluator&gt;,</span> <span class="pre">reranker:</span> <span class="pre">~raglab.agent.Reranker</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">score_reranker&gt;,</span> <span class="pre">citer:</span> <span class="pre">~raglab.agent.Citer</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_citer&gt;,</span> <span class="pre">budget:</span> <span class="pre">~raglab.agent.Budget</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#SingleContextAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.SingleContextAgent" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">SingleContextAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">sources:</span> <span class="pre">~collections.abc.Mapping[str,</span> <span class="pre">~typing.Callable[[...],</span> <span class="pre">list[~ir.base.SearchHit]]],</span> <span class="pre">planner:</span> <span class="pre">~raglab.agent.Planner</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">single_subtask_planner&gt;,</span> <span class="pre">formulator:</span> <span class="pre">~raglab.agent.Formulator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_formulator&gt;,</span> <span class="pre">evaluator:</span> <span class="pre">~raglab.agent.Evaluator</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">passthrough_evaluator&gt;,</span> <span class="pre">reranker:</span> <span class="pre">~raglab.agent.Reranker</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">rrf_reranker&gt;,</span> <span class="pre">citer:</span> <span class="pre">~raglab.agent.Citer</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">identity_citer&gt;,</span> <span class="pre">budget:</span> <span class="pre">~raglab.agent.Budget</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/raglab/agent.html#SingleContextAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.SingleContextAgent" title="Link to this definition"></a></dt>
 <dd><p>One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).</p>
 <p>The loop is fixed; every <em>decision</em> is an injected role. Promotion to a
 multi-agent orchestrator (ir_09 §7) swaps this class while keeping the same
@@ -228,15 +237,20 @@ role contracts. The <strong>back-edge</strong> is the single line <code class="d
 <dl class="py method">
 <dt class="sig sig-object py" id="raglab.agent.SingleContextAgent.reranker">
 <span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#raglab.agent.SingleContextAgent.reranker" title="Link to this definition"></a></dt>
-<dd><p>Cross-source merge (v1): one surface per artifact, ordered by descending score.</p>
-<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> (ir is the SSOT for hit
-operations): an artifact retrieved by several queries / sources / rounds —
-common once the back-edge re-queries — survives once, at its highest score, so
-the merged list carries no duplicate <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>. Also the evaluator’s
-pre-selection rank, so <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code> never sees duplicates either.</p>
-<p>Note: a plain score sort assumes comparable score scales across sources
-(true when they share an embedder + mode). A rank-based (RRF) cross-source
-merge for heterogeneous backends is a documented follow-up.</p>
+<dd><p>Cross-source merge (the default fan-in): fuse by rank, never by raw score.</p>
+<p>Groups the accumulated pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> and delegates the merge to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.fuse_hits()</span></code> (ir is the SSOT for hit operations): within each
+source raw scores order and dedup that source’s hits — one scale, sound —
+and across sources only <strong>ranks</strong> interact (Reciprocal Rank Fusion), so
+heterogeneous embedders / modes can never mis-order the merge, and
+colliding <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>s from different sources stay distinct results
+(identity is <code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>).</p>
+<p>A single-source pool (or an untagged one — hits with no <code class="docutils literal notranslate"><span class="pre">source</span></code>) keeps
+its raw scores and exactly <a class="reference internal" href="#raglab.agent.score_reranker" title="raglab.agent.score_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">score_reranker()</span></code></a>’s ordering; fused,
+rank-derived scores only appear when there is genuinely something to fuse.
+Each fused hit keeps its pre-fusion magnitude as
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;source_score&quot;]</span></code>. For per-source weights, another <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>,
+or opt-in cross-source duplicate merging, use <a class="reference internal" href="#raglab.agent.make_rrf_reranker" title="raglab.agent.make_rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -263,9 +277,29 @@ merge for heterogeneous backends is a documented follow-up.</p>
 <dt class="sig sig-object py" id="raglab.agent.ir_sources">
 <span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">ir_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">search_defaults</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#ir_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.ir_sources" title="Link to this definition"></a></dt>
 <dd><p>A source registry <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">Retriever}</span></code> backed by named <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpora.</p>
-<p>Each name is bound to <code class="docutils literal notranslate"><span class="pre">ir.as_retriever(name,</span> <span class="pre">**search_defaults)</span></code>. A thin
-convenience; once ir ships <code class="docutils literal notranslate"><span class="pre">registry.retrievers()</span></code> (a lazy view), prefer
-that. <code class="docutils literal notranslate"><span class="pre">search_defaults</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">mode=&quot;hybrid&quot;</span></code>) apply to every source.</p>
+<p>Each name is bound to <code class="docutils literal notranslate"><span class="pre">ir.as_retriever(name,</span> <span class="pre">**search_defaults)</span></code>, opened
+eagerly. For the <em>lazy</em> live view over everything registered (a corpus
+opens only when its key is first used), use <code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> instead —
+the agent accepts either, or any <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code>.
+<code class="docutils literal notranslate"><span class="pre">search_defaults</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">mode=&quot;hybrid&quot;</span></code>) apply to every source.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.make_rrf_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">make_rrf_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrf_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#raglab.agent.Reranker" title="raglab.agent.Reranker"><span class="pre">Reranker</span></a></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#make_rrf_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.make_rrf_reranker" title="Link to this definition"></a></dt>
+<dd><p>A parametrized <a class="reference internal" href="#raglab.agent.rrf_reranker" title="raglab.agent.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a> (per-source trust weights, <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rrf_k</strong> – the RRF rank constant (standard default 60).</p></li>
+<li><p><strong>weights</strong> – optional per-source trust dial, by source name (default 1.0
+each) — biases the merge without ever comparing raw scores.</p></li>
+<li><p><strong>identity</strong> – opt-in cross-source duplicate detection (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;pointer&quot;</span></code>)
+— see <code class="xref py py-data docutils literal notranslate"><span class="pre">ir.retrieve.Identity</span></code>. Default: never merge across
+sources.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -273,10 +307,14 @@ that. <code class="docutils literal notranslate"><span class="pre">search_defaul
 <span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">make_search_agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">planner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Planner" title="raglab.agent.Planner"><span class="pre">Planner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Formulator" title="raglab.agent.Formulator"><span class="pre">Formulator</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Evaluator" title="raglab.agent.Evaluator"><span class="pre">Evaluator</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reranker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Reranker" title="raglab.agent.Reranker"><span class="pre">Reranker</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Citer" title="raglab.agent.Citer"><span class="pre">Citer</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">budget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#raglab.agent.Budget" title="raglab.agent.Budget"><span class="pre">Budget</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#raglab.agent.SingleContextAgent" title="raglab.agent.SingleContextAgent"><span class="pre">SingleContextAgent</span></a></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#make_search_agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.make_search_agent" title="Link to this definition"></a></dt>
 <dd><p>Build a <a class="reference internal" href="#raglab.agent.SingleContextAgent" title="raglab.agent.SingleContextAgent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a> over <em>sources</em> with smart defaults.</p>
 <p><code class="docutils literal notranslate"><span class="pre">sources</span></code> is a <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code> — e.g.
-<code class="docutils literal notranslate"><span class="pre">{&quot;skills&quot;:</span> <span class="pre">ir.as_retriever(&quot;skills&quot;)}</span></code>. Every role defaults to its no-LLM
-thin-slice implementation, so <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code> just
-works; inject an LLM <code class="docutils literal notranslate"><span class="pre">formulator</span></code> / <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to turn on rewriting and
-the back-edge.</p>
+<code class="docutils literal notranslate"><span class="pre">{&quot;skills&quot;:</span> <span class="pre">ir.as_retriever(&quot;skills&quot;)}</span></code>, <a class="reference internal" href="#raglab.agent.ir_sources" title="raglab.agent.ir_sources"><code class="xref py py-func docutils literal notranslate"><span class="pre">ir_sources()</span></code></a>, or the lazy
+<code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> view. Every role defaults to its no-LLM thin-slice
+implementation, so <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code> just works;
+inject an LLM <code class="docutils literal notranslate"><span class="pre">formulator</span></code> / <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to turn on rewriting and the
+back-edge.</p>
+<p>A custom <code class="docutils literal notranslate"><span class="pre">Retriever</span></code> must return <code class="xref py py-class docutils literal notranslate"><span class="pre">ir.SearchHit</span></code> instances (the
+<code class="docutils literal notranslate"><span class="pre">Result</span></code> alias): the loop stamps provenance (<code class="docutils literal notranslate"><span class="pre">hit.source</span></code>) on its
+output, so duck-typed hit objects raise at the tagging step.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -286,17 +324,36 @@ the back-edge.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="raglab.agent.rrf_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">rrf_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#rrf_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.rrf_reranker" title="Link to this definition"></a></dt>
+<dd><p>Cross-source merge (the default fan-in): fuse by rank, never by raw score.</p>
+<p>Groups the accumulated pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> and delegates the merge to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.fuse_hits()</span></code> (ir is the SSOT for hit operations): within each
+source raw scores order and dedup that source’s hits — one scale, sound —
+and across sources only <strong>ranks</strong> interact (Reciprocal Rank Fusion), so
+heterogeneous embedders / modes can never mis-order the merge, and
+colliding <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>s from different sources stay distinct results
+(identity is <code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>).</p>
+<p>A single-source pool (or an untagged one — hits with no <code class="docutils literal notranslate"><span class="pre">source</span></code>) keeps
+its raw scores and exactly <a class="reference internal" href="#raglab.agent.score_reranker" title="raglab.agent.score_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">score_reranker()</span></code></a>’s ordering; fused,
+rank-derived scores only appear when there is genuinely something to fuse.
+Each fused hit keeps its pre-fusion magnitude as
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;source_score&quot;]</span></code>. For per-source weights, another <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>,
+or opt-in cross-source duplicate merging, use <a class="reference internal" href="#raglab.agent.make_rrf_reranker" title="raglab.agent.make_rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="raglab.agent.score_reranker">
 <span class="sig-prename descclassname"><span class="pre">raglab.agent.</span></span><span class="sig-name descname"><span class="pre">score_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">SearchHit</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/raglab/agent.html#score_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.agent.score_reranker" title="Link to this definition"></a></dt>
-<dd><p>Cross-source merge (v1): one surface per artifact, ordered by descending score.</p>
+<dd><p>Magnitude merge: one surface per artifact, ordered by descending raw score.</p>
 <p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> (ir is the SSOT for hit
-operations): an artifact retrieved by several queries / sources / rounds —
-common once the back-edge re-queries — survives once, at its highest score, so
-the merged list carries no duplicate <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>. Also the evaluator’s
-pre-selection rank, so <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code> never sees duplicates either.</p>
-<p>Note: a plain score sort assumes comparable score scales across sources
-(true when they share an embedder + mode). A rank-based (RRF) cross-source
-merge for heterogeneous backends is a documented follow-up.</p>
+operations): an artifact retrieved by several queries / rounds — common once
+the back-edge re-queries — survives once, at its highest score. Identity is
+<code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>, so two sources’ same-id artifacts never collapse.</p>
+<p>A plain score sort compares raw scores <strong>across</strong> sources, which is only
+sound when every source shares one score scale (same embedder + mode) — it
+is the explicit homogeneous-sources opt-in. The default fan-in is
+<a class="reference internal" href="#raglab.agent.rrf_reranker" title="raglab.agent.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a>, which never compares raw scores across sources.</p>
 </dd></dl>
 
 <dl class="py function">

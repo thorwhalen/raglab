@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>raglab.agent &mdash; raglab 0.2.2 documentation</title>
+  <title>raglab.agent &mdash; raglab 0.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=000c92bf"></script>
+      <script src="../../_static/documentation_options.js?v=a47416a6"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../_static/toggleprompt.js?v=d7ede5d2"></script>
@@ -84,6 +84,14 @@
 <span class="sd">is fully parametrized by injected roles. Concrete tools live at the leaves — an</span>
 <span class="sd">`ir` corpus becomes one `Retriever` via :func:`ir.as_retriever`.</span>
 
+<span class="sd">The agent is **multi-source by default**: the loop stamps each hit&#39;s</span>
+<span class="sd">provenance (``hit.source``), and the fan-in :class:`Reranker` —</span>
+<span class="sd">:func:`rrf_reranker` — merges heterogeneous sources by *rank*, never by raw</span>
+<span class="sd">score (scores from different corpora / embedders / modes are incommensurable;</span>
+<span class="sd">ir_07/ir_08). Raw magnitudes order and dedup hits *within* one source, and the</span>
+<span class="sd">loop&#39;s pool always carries them; fused (ordinal) scores appear only at the</span>
+<span class="sd">fan-in boundary.</span>
+
 <span class="sd">The shape follows ir_09 §3/§6: a small set of named roles —</span>
 <span class="sd">``Planner / Formulator / Retriever / Evaluator / Reranker / Citer`` — and a loop</span>
 <span class="sd">whose defining feature is the **back-edge** (evaluator → reformulate) that makes</span>
@@ -105,10 +113,12 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 
-<span class="c1"># ir owns the retrieval substrate: the Result type and the Retriever leaf</span>
-<span class="c1"># contract live there (one-way dependency, ir is the SSOT).</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retriever</span><span class="p">,</span> <span class="n">SearchHit</span>
+<span class="c1"># ir owns the retrieval substrate: the Result type, the Retriever leaf</span>
+<span class="c1"># contract, and the hit operations (dedup, cross-source fusion) live there</span>
+<span class="c1"># (one-way dependency, ir is the SSOT).</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">Retriever</span><span class="p">,</span> <span class="n">SearchHit</span><span class="p">,</span> <span class="n">fuse_hits</span><span class="p">,</span> <span class="n">tag_source</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">ir.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">best_per_artifact</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir.retrieve</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_RRF_K</span><span class="p">,</span> <span class="n">Identity</span>
 
 <span class="c1">#: A retrieved item — ir&#39;s :class:`~ir.base.SearchHit` (ir_09&#39;s ``Result``):</span>
 <span class="c1">#: a *pointer + snippet* (``text``) with a ``score`` and ``metadata``.</span>
@@ -134,6 +144,8 @@
     <span class="s2">&quot;identity_formulator&quot;</span><span class="p">,</span>
     <span class="s2">&quot;passthrough_evaluator&quot;</span><span class="p">,</span>
     <span class="s2">&quot;score_reranker&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;rrf_reranker&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;make_rrf_reranker&quot;</span><span class="p">,</span>
     <span class="s2">&quot;identity_citer&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
@@ -308,19 +320,88 @@
 <div class="viewcode-block" id="score_reranker">
 <a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.score_reranker">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">score_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cross-source merge (v1): one surface per artifact, ordered by descending score.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Magnitude merge: one surface per artifact, ordered by descending raw score.</span>
 
 <span class="sd">    Delegates to :func:`ir.base.best_per_artifact` (ir is the SSOT for hit</span>
-<span class="sd">    operations): an artifact retrieved by several queries / sources / rounds —</span>
-<span class="sd">    common once the back-edge re-queries — survives once, at its highest score, so</span>
-<span class="sd">    the merged list carries no duplicate ``artifact_id``. Also the evaluator&#39;s</span>
-<span class="sd">    pre-selection rank, so :func:`ir.select` never sees duplicates either.</span>
+<span class="sd">    operations): an artifact retrieved by several queries / rounds — common once</span>
+<span class="sd">    the back-edge re-queries — survives once, at its highest score. Identity is</span>
+<span class="sd">    ``(source, artifact_id)``, so two sources&#39; same-id artifacts never collapse.</span>
 
-<span class="sd">    Note: a plain score sort assumes comparable score scales across sources</span>
-<span class="sd">    (true when they share an embedder + mode). A rank-based (RRF) cross-source</span>
-<span class="sd">    merge for heterogeneous backends is a documented follow-up.</span>
+<span class="sd">    A plain score sort compares raw scores **across** sources, which is only</span>
+<span class="sd">    sound when every source shares one score scale (same embedder + mode) — it</span>
+<span class="sd">    is the explicit homogeneous-sources opt-in. The default fan-in is</span>
+<span class="sd">    :func:`rrf_reranker`, which never compares raw scores across sources.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">best_per_artifact</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rrf_rerank</span><span class="p">(</span>
+    <span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rrf_k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Group by ``hit.source`` and rank-fuse via :func:`ir.fuse_hits`.&quot;&quot;&quot;</span>
+    <span class="c1"># None is preserved as the untagged pseudo-source key: its hits fuse as</span>
+    <span class="c1"># one rank group and stay unattributed (never an empty-string stamp).</span>
+    <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># One scale: the magnitude merge, with hits passed through untouched.</span>
+        <span class="k">return</span> <span class="n">best_per_artifact</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fuse_hits</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">rrf_k</span><span class="o">=</span><span class="n">rrf_k</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">identity</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="rrf_reranker">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.rrf_reranker">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rrf_reranker</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cross-source merge (the default fan-in): fuse by rank, never by raw score.</span>
+
+<span class="sd">    Groups the accumulated pool by ``hit.source`` and delegates the merge to</span>
+<span class="sd">    :func:`ir.fuse_hits` (ir is the SSOT for hit operations): within each</span>
+<span class="sd">    source raw scores order and dedup that source&#39;s hits — one scale, sound —</span>
+<span class="sd">    and across sources only **ranks** interact (Reciprocal Rank Fusion), so</span>
+<span class="sd">    heterogeneous embedders / modes can never mis-order the merge, and</span>
+<span class="sd">    colliding ``artifact_id``\\ s from different sources stay distinct results</span>
+<span class="sd">    (identity is ``(source, artifact_id)``).</span>
+
+<span class="sd">    A single-source pool (or an untagged one — hits with no ``source``) keeps</span>
+<span class="sd">    its raw scores and exactly :func:`score_reranker`&#39;s ordering; fused,</span>
+<span class="sd">    rank-derived scores only appear when there is genuinely something to fuse.</span>
+<span class="sd">    Each fused hit keeps its pre-fusion magnitude as</span>
+<span class="sd">    ``metadata[&quot;source_score&quot;]``. For per-source weights, another ``rrf_k``,</span>
+<span class="sd">    or opt-in cross-source duplicate merging, use :func:`make_rrf_reranker`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_rrf_rerank</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">rrf_k</span><span class="o">=</span><span class="n">DFLT_RRF_K</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">identity</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="make_rrf_reranker">
+<a class="viewcode-back" href="../../module_docs/raglab/agent.html#raglab.make_rrf_reranker">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_rrf_reranker</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rrf_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_RRF_K</span><span class="p">,</span>
+    <span class="n">weights</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">identity</span><span class="p">:</span> <span class="n">Identity</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Reranker</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A parametrized :func:`rrf_reranker` (per-source trust weights, ``rrf_k``).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        rrf_k: the RRF rank constant (standard default 60).</span>
+<span class="sd">        weights: optional per-source trust dial, by source name (default 1.0</span>
+<span class="sd">            each) — biases the merge without ever comparing raw scores.</span>
+<span class="sd">        identity: opt-in cross-source duplicate detection (e.g. ``&quot;pointer&quot;``)</span>
+<span class="sd">            — see :data:`ir.retrieve.Identity`. Default: never merge across</span>
+<span class="sd">            sources.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reranker</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">_rrf_rerank</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">rrf_k</span><span class="o">=</span><span class="n">rrf_k</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">identity</span><span class="o">=</span><span class="n">identity</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">reranker</span></div>
 
 
 
@@ -353,7 +434,7 @@
     <span class="n">planner</span><span class="p">:</span> <span class="n">Planner</span> <span class="o">=</span> <span class="n">single_subtask_planner</span>
     <span class="n">formulator</span><span class="p">:</span> <span class="n">Formulator</span> <span class="o">=</span> <span class="n">identity_formulator</span>
     <span class="n">evaluator</span><span class="p">:</span> <span class="n">Evaluator</span> <span class="o">=</span> <span class="n">passthrough_evaluator</span>
-    <span class="n">reranker</span><span class="p">:</span> <span class="n">Reranker</span> <span class="o">=</span> <span class="n">score_reranker</span>
+    <span class="n">reranker</span><span class="p">:</span> <span class="n">Reranker</span> <span class="o">=</span> <span class="n">rrf_reranker</span>
     <span class="n">citer</span><span class="p">:</span> <span class="n">Citer</span> <span class="o">=</span> <span class="n">identity_citer</span>
     <span class="n">budget</span><span class="p">:</span> <span class="n">Budget</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Budget</span><span class="p">)</span>
 
@@ -375,7 +456,14 @@
                 <span class="k">if</span> <span class="n">retriever</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
                 <span class="k">for</span> <span class="n">llq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">formulator</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
-                    <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">retriever</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">params</span><span class="p">)))</span>
+                    <span class="c1"># Stamp the registry key on hits the retriever did not</span>
+                    <span class="c1"># self-attribute (ir-backed retrievers stamp the corpus</span>
+                    <span class="c1"># name themselves, and their tags win), so any custom</span>
+                    <span class="c1"># Retriever still yields attributable hits — the fan-in</span>
+                    <span class="c1"># reranker merges by source.</span>
+                    <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="n">tag_source</span><span class="p">(</span><span class="n">retriever</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">query</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">llq</span><span class="o">.</span><span class="n">params</span><span class="p">)),</span> <span class="n">source</span><span class="p">)</span>
+                    <span class="p">)</span>
             <span class="n">judged</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">found</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_results_per_task</span><span class="p">])</span>
             <span class="n">found</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">judged</span><span class="o">.</span><span class="n">relevant</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">judged</span><span class="o">.</span><span class="n">sufficient</span> <span class="ow">or</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -400,17 +488,22 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build a :class:`SingleContextAgent` over *sources* with smart defaults.</span>
 
 <span class="sd">    ``sources`` is a ``Mapping[name, Retriever]`` — e.g.</span>
-<span class="sd">    ``{&quot;skills&quot;: ir.as_retriever(&quot;skills&quot;)}``. Every role defaults to its no-LLM</span>
-<span class="sd">    thin-slice implementation, so ``make_search_agent(sources)(&quot;query&quot;)`` just</span>
-<span class="sd">    works; inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and</span>
-<span class="sd">    the back-edge.</span>
+<span class="sd">    ``{&quot;skills&quot;: ir.as_retriever(&quot;skills&quot;)}``, :func:`ir_sources`, or the lazy</span>
+<span class="sd">    ``ir.retrievers()`` view. Every role defaults to its no-LLM thin-slice</span>
+<span class="sd">    implementation, so ``make_search_agent(sources)(&quot;query&quot;)`` just works;</span>
+<span class="sd">    inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the</span>
+<span class="sd">    back-edge.</span>
+
+<span class="sd">    A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the</span>
+<span class="sd">    ``Result`` alias): the loop stamps provenance (``hit.source``) on its</span>
+<span class="sd">    output, so duck-typed hit objects raise at the tagging step.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">SingleContextAgent</span><span class="p">(</span>
         <span class="n">sources</span><span class="o">=</span><span class="n">sources</span><span class="p">,</span>
         <span class="n">planner</span><span class="o">=</span><span class="n">planner</span> <span class="ow">or</span> <span class="n">single_subtask_planner</span><span class="p">,</span>
         <span class="n">formulator</span><span class="o">=</span><span class="n">formulator</span> <span class="ow">or</span> <span class="n">identity_formulator</span><span class="p">,</span>
         <span class="n">evaluator</span><span class="o">=</span><span class="n">evaluator</span> <span class="ow">or</span> <span class="n">passthrough_evaluator</span><span class="p">,</span>
-        <span class="n">reranker</span><span class="o">=</span><span class="n">reranker</span> <span class="ow">or</span> <span class="n">score_reranker</span><span class="p">,</span>
+        <span class="n">reranker</span><span class="o">=</span><span class="n">reranker</span> <span class="ow">or</span> <span class="n">rrf_reranker</span><span class="p">,</span>
         <span class="n">citer</span><span class="o">=</span><span class="n">citer</span> <span class="ow">or</span> <span class="n">identity_citer</span><span class="p">,</span>
         <span class="n">budget</span><span class="o">=</span><span class="n">budget</span> <span class="ow">or</span> <span class="n">Budget</span><span class="p">(),</span>
     <span class="p">)</span></div>
@@ -422,9 +515,11 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">ir_sources</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">search_defaults</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Retriever</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A source registry ``{name: Retriever}`` backed by named ``ir`` corpora.</span>
 
-<span class="sd">    Each name is bound to ``ir.as_retriever(name, **search_defaults)``. A thin</span>
-<span class="sd">    convenience; once ir ships ``registry.retrievers()`` (a lazy view), prefer</span>
-<span class="sd">    that. ``search_defaults`` (e.g. ``mode=&quot;hybrid&quot;``) apply to every source.</span>
+<span class="sd">    Each name is bound to ``ir.as_retriever(name, **search_defaults)``, opened</span>
+<span class="sd">    eagerly. For the *lazy* live view over everything registered (a corpus</span>
+<span class="sd">    opens only when its key is first used), use ``ir.retrievers()`` instead —</span>
+<span class="sd">    the agent accepts either, or any ``Mapping[name, Retriever]``.</span>
+<span class="sd">    ``search_defaults`` (e.g. ``mode=&quot;hybrid&quot;``) apply to every source.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
 
