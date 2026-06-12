@@ -39,6 +39,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Callable
 
 import ir
+from ir.base import best_per_artifact
 
 from .agent import (
     Evaluator,
@@ -171,7 +172,12 @@ def make_llm_evaluator(
         select_strategy: ir selection strategy for the relevance decision
             (default ``"conservative"`` — distractor-robust).
         select_kwargs: extra args forwarded to :func:`ir.select`
-            (e.g. ``max_k``, ``rel``, ``min_score``).
+            (e.g. ``max_k``, ``rel``). ``min_score`` is allowed only while the
+            round's pool keeps raw scores (single-source, or
+            ``prerank=score_reranker``): an absolute floor is per-(corpus,
+            mode, embedder), so a round whose pool was rank-fused across
+            sources **raises** rather than silently mass-abstaining on
+            ordinal RRF scores.
         prerank: the per-round merge that puts the accumulated pool best-first
             (and deduped) before ``ir.select``. Defaults to
             :func:`~raglab.agent.rrf_reranker` — a round's pool can already mix
@@ -186,6 +192,9 @@ def make_llm_evaluator(
     loop. Sufficiency without a refinement query is likewise treated as a stop.
     """
     sel_kw = dict(select_kwargs or {})
+    # The floor is handled here, not blindly forwarded: it must only ever meet
+    # raw (per-source-scale) scores — see the guard in the evaluator below.
+    floor = sel_kw.pop("min_score", None)
     prerank = prerank or rrf_reranker
 
     def _ask_judge(goal: str, rendered: str) -> tuple[bool, str | None]:
@@ -200,9 +209,30 @@ def make_llm_evaluator(
         # ``ir.select`` documents a best-first precondition; the loop accumulates
         # hits across rounds/sources in arbitrary order, so merge them first —
         # the same (scale-safe) merge the final fan-in reranker uses.
-        ranked = prerank(results)
-        selection = ir.select(list(ranked), strategy=select_strategy, **sel_kw)
-        relevant = list(selection.selected)
+        ranked = list(prerank(results))
+        if floor is not None and any("source_rank" in h.metadata for h in ranked):
+            # fuse_hits stamps source_rank exactly when it fused: the pool
+            # spans sources, so the scores below are ordinal RRF values — an
+            # absolute floor against them is the mis-scaled comparison ir
+            # refuses loudly (ir_07). Never silently mass-abstain.
+            raise ValueError(
+                "min_score with a multi-source round: the pool was rank-fused, "
+                "so an absolute floor would compare against ordinal RRF scores. "
+                "Floors are per-(corpus, mode, embedder) — drop min_score, or "
+                "inject prerank=score_reranker for sources known to share one "
+                "score scale."
+            )
+        selection = ir.select(
+            ranked, strategy=select_strategy, min_score=floor, **sel_kw
+        )
+        # Map the committed subset back to the PRE-fusion originals: fused
+        # (ordinal) scores are local to this selection. ``Judgement.relevant``
+        # re-enters the loop's pool and the final fan-in re-fuses it, so it
+        # must carry raw per-source magnitudes — otherwise round N+1 compares
+        # round N's fused scores against raw ones inside one source group,
+        # and ``source_score`` gets overwritten by an already-fused value.
+        raw = {(h.source, h.artifact_id): h for h in best_per_artifact(results)}
+        relevant = [raw.get((h.source, h.artifact_id), h) for h in selection.selected]
         rendered = (
             _render_results(relevant, max_result_chars)
             if relevant

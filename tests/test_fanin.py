@@ -180,6 +180,77 @@ def test_llm_evaluator_prerank_is_injectable():
     assert judgement.relevant[0].source == "s2"
 
 
+def test_llm_evaluator_relevant_carries_prefusion_magnitudes():
+    from raglab import make_llm_evaluator
+
+    # Judgement.relevant re-enters the loop's pool, so it must carry RAW
+    # per-source scores — the fused (ordinal) view is local to selection.
+    pool = _hits(("a", 0.9), source="s1") + _hits(("b", 30.0), source="s2")
+    evaluator = make_llm_evaluator(judge=lambda *, goal, results: (True, None))
+    judgement = evaluator(SubTask("g", ("s1", "s2")), pool)
+    assert {h.score for h in judgement.relevant} == {0.9, 30.0}  # not ~1/61
+    assert all("source_rank" not in h.metadata for h in judgement.relevant)
+
+
+def test_agent_with_llm_evaluator_never_mixes_fused_and_raw_scores():
+    from raglab import make_llm_evaluator
+
+    # Regression for the double-fusion feedback: round-1 fused scores must not
+    # re-enter the pool, or round 2 compares ordinal RRF values against raw
+    # magnitudes INSIDE one source group (and source_score gets overwritten by
+    # an already-fused value).
+    def varying_retriever(rounds_hits):
+        state = {"round": 0}
+
+        def retrieve(query, **kw):
+            hits = rounds_hits[min(state["round"], len(rounds_hits) - 1)]
+            state["round"] += 1
+            return list(hits)
+
+        return retrieve
+
+    sources = {
+        "s1": varying_retriever([_hits(("a1", 0.9)), _hits(("a2", 0.5))]),
+        "s2": varying_retriever([_hits(("b1", 30.0)), _hits(("b2", 24.0))]),
+    }
+    verdicts = iter([(False, "refined q"), (True, None)])
+    evaluator = make_llm_evaluator(judge=lambda *, goal, results: next(verdicts))
+    results = make_search_agent(
+        sources, evaluator=evaluator, formulator=raglab.identity_formulator
+    )("q")
+    raw = {("s1", "a1"): 0.9, ("s1", "a2"): 0.5, ("s2", "b1"): 30.0, ("s2", "b2"): 24.0}
+    for h in results:
+        assert h.metadata["source_score"] == raw[(h.source, h.artifact_id)]
+    # Within one source, the final order follows raw magnitudes.
+    s1 = [h.artifact_id for h in results if h.source == "s1"]
+    assert s1 == sorted(s1, key=lambda a: -raw[("s1", a)])
+
+
+def test_llm_evaluator_min_score_works_single_source_raises_multi():
+    import pytest
+
+    from raglab import make_llm_evaluator
+
+    judge = lambda *, goal, results: (True, None)  # noqa: E731
+    single = _hits(("a", 0.9), ("b", 0.1), source="s1")
+    evaluator = make_llm_evaluator(judge=judge, select_kwargs={"min_score": 0.5})
+    judgement = evaluator(SubTask("g", ("s1",)), single)
+    assert [h.artifact_id for h in judgement.relevant] == ["a"]  # floor met raw scores
+
+    multi = _hits(("a", 0.9), source="s1") + _hits(("b", 30.0), source="s2")
+    with pytest.raises(ValueError, match="rank-fused"):
+        evaluator(SubTask("g", ("s1", "s2")), multi)  # never silently mass-abstain
+
+
+def test_mixed_tagged_untagged_pool_keeps_none_provenance():
+    pool = _hits(("u", 0.5)) + _hits(("t", 9.0), source="s1")
+    fused = rrf_reranker(pool)
+    by_id = {h.artifact_id: h for h in fused}
+    assert by_id["u"].source is None  # untagged pseudo-source, never ""
+    assert by_id["t"].source == "s1"
+    assert by_id["u"].to_dict()["source"] is None
+
+
 # ----- end-to-end over two REAL ir corpora (hermetic: light embedder) -------- #
 
 

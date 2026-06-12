@@ -6,6 +6,14 @@ This module is the v1 foundation: the immutable value types, the role *Protocols
 is fully parametrized by injected roles. Concrete tools live at the leaves — an
 `ir` corpus becomes one `Retriever` via :func:`ir.as_retriever`.
 
+The agent is **multi-source by default**: the loop stamps each hit's
+provenance (``hit.source``), and the fan-in :class:`Reranker` —
+:func:`rrf_reranker` — merges heterogeneous sources by *rank*, never by raw
+score (scores from different corpora / embedders / modes are incommensurable;
+ir_07/ir_08). Raw magnitudes order and dedup hits *within* one source, and the
+loop's pool always carries them; fused (ordinal) scores appear only at the
+fan-in boundary.
+
 The shape follows ir_09 §3/§6: a small set of named roles —
 ``Planner / Formulator / Retriever / Evaluator / Reranker / Citer`` — and a loop
 whose defining feature is the **back-edge** (evaluator → reformulate) that makes
@@ -216,9 +224,11 @@ def _rrf_rerank(
     identity: Identity,
 ) -> Sequence[Result]:
     """Group by ``hit.source`` and rank-fuse via :func:`ir.fuse_hits`."""
-    groups: dict[str, list[Result]] = {}
+    # None is preserved as the untagged pseudo-source key: its hits fuse as
+    # one rank group and stay unattributed (never an empty-string stamp).
+    groups: dict[str | None, list[Result]] = {}
     for h in results:
-        groups.setdefault(h.source or "", []).append(h)
+        groups.setdefault(h.source, []).append(h)
     if len(groups) <= 1:
         # One scale: the magnitude merge, with hits passed through untouched.
         return best_per_artifact(results)
@@ -344,10 +354,15 @@ def make_search_agent(
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
     ``sources`` is a ``Mapping[name, Retriever]`` — e.g.
-    ``{"skills": ir.as_retriever("skills")}``. Every role defaults to its no-LLM
-    thin-slice implementation, so ``make_search_agent(sources)("query")`` just
-    works; inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and
-    the back-edge.
+    ``{"skills": ir.as_retriever("skills")}``, :func:`ir_sources`, or the lazy
+    ``ir.retrievers()`` view. Every role defaults to its no-LLM thin-slice
+    implementation, so ``make_search_agent(sources)("query")`` just works;
+    inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the
+    back-edge.
+
+    A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the
+    ``Result`` alias): the loop stamps provenance (``hit.source``) on its
+    output, so duck-typed hit objects raise at the tagging step.
     """
     return SingleContextAgent(
         sources=sources,
@@ -365,8 +380,8 @@ def ir_sources(*names: str, **search_defaults: Any) -> dict[str, Retriever]:
 
     Each name is bound to ``ir.as_retriever(name, **search_defaults)``, opened
     eagerly. For the *lazy* live view over everything registered (a corpus
-    opens only when its key is first used), use ``ir.registry.retrievers()``
-    instead — the agent accepts either, or any ``Mapping[name, Retriever]``.
+    opens only when its key is first used), use ``ir.retrievers()`` instead —
+    the agent accepts either, or any ``Mapping[name, Retriever]``.
     ``search_defaults`` (e.g. ``mode="hybrid"``) apply to every source.
     """
     import ir
