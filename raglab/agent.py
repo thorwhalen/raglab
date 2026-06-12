@@ -30,6 +30,7 @@ from typing import Any, Protocol, runtime_checkable
 # ir owns the retrieval substrate: the Result type and the Retriever leaf
 # contract live there (one-way dependency, ir is the SSOT).
 from ir import Retriever, SearchHit
+from ir.base import best_per_artifact
 
 #: A retrieved item — ir's :class:`~ir.base.SearchHit` (ir_09's ``Result``):
 #: a *pointer + snippet* (``text``) with a ``score`` and ``metadata``.
@@ -188,13 +189,19 @@ def passthrough_evaluator(task: SubTask, results: Sequence[Result]) -> Judgement
 
 
 def score_reranker(results: Sequence[Result]) -> Sequence[Result]:
-    """Final ordering by descending ``score`` (the cross-source merge, v1).
+    """Cross-source merge (v1): one surface per artifact, ordered by descending score.
+
+    Delegates to :func:`ir.base.best_per_artifact` (ir is the SSOT for hit
+    operations): an artifact retrieved by several queries / sources / rounds —
+    common once the back-edge re-queries — survives once, at its highest score, so
+    the merged list carries no duplicate ``artifact_id``. Also the evaluator's
+    pre-selection rank, so :func:`ir.select` never sees duplicates either.
 
     Note: a plain score sort assumes comparable score scales across sources
     (true when they share an embedder + mode). A rank-based (RRF) cross-source
     merge for heterogeneous backends is a documented follow-up.
     """
-    return sorted(results, key=lambda r: float(getattr(r, "score", 0.0)), reverse=True)
+    return best_per_artifact(results)
 
 
 def identity_citer(results: Sequence[Result]) -> Sequence[Result]:

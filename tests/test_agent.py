@@ -66,6 +66,28 @@ def test_cross_source_merge_reranks_by_score():
     assert [r.artifact_id for r in results] == ["b", "a"]  # by score desc
 
 
+def test_final_results_have_no_duplicate_artifacts():
+    # An artifact re-retrieved across back-edge rounds collapses to its best score.
+    retr = _fake_retriever(_hits(("a", 0.9), ("b", 0.4)))
+    rounds = {"n": 0}
+
+    def refining(task, results):
+        rounds["n"] += 1
+        if rounds["n"] < 2:
+            return Judgement(
+                list(results),
+                sufficient=False,
+                refinement=SubTask(task.goal, task.sources),
+            )
+        return Judgement(list(results), sufficient=True)
+
+    ids = [
+        r.artifact_id for r in make_search_agent({"s": retr}, evaluator=refining)("q")
+    ]
+    assert ids == ["a", "b"]  # best score per artifact, descending
+    assert len(ids) == len(set(ids))  # the re-query did not duplicate artifacts
+
+
 def test_passthrough_evaluator_does_not_loop():
     retr = _fake_retriever(_hits(("a", 0.9)))
     make_search_agent({"s": retr})("q")
@@ -131,6 +153,26 @@ def test_budget_bounds_a_never_sufficient_loop():
         {"s": retr}, evaluator=never_sufficient, budget=Budget(max_rounds=3)
     )("q")
     assert len(retr.calls) == 3  # exactly max_rounds — the safety net holds
+
+
+def test_budget_caps_results_per_task_seen_by_evaluator():
+    retr = _fake_retriever(_hits(*[(f"a{i}", 1.0 - i / 100) for i in range(20)]))
+    seen = {}
+
+    def evaluator(task, results):
+        seen["n"] = len(results)
+        return Judgement(list(results), sufficient=True)
+
+    make_search_agent(
+        {"s": retr}, evaluator=evaluator, budget=Budget(max_results_per_task=5)
+    )("q")
+    assert seen["n"] == 5  # the evaluator sees at most max_results_per_task
+
+
+def test_budget_caps_sources_per_task():
+    retrs = {f"s{i}": _fake_retriever(_hits((f"a{i}", 0.5))) for i in range(6)}
+    make_search_agent(retrs, budget=Budget(max_sources_per_task=2))("q")
+    assert sum(1 for r in retrs.values() if r.calls) == 2  # only first 2 sources hit
 
 
 # ----- end-to-end over a REAL ir corpus (hermetic: light embedder) ---------- #
