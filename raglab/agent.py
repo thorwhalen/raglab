@@ -6,6 +6,14 @@ This module is the v1 foundation: the immutable value types, the role *Protocols
 is fully parametrized by injected roles. Concrete tools live at the leaves — an
 `ir` corpus becomes one `Retriever` via :func:`ir.as_retriever`.
 
+The agent is **multi-source by default**: the loop stamps each hit's
+provenance (``hit.source``), and the fan-in :class:`Reranker` —
+:func:`rrf_reranker` — merges heterogeneous sources by *rank*, never by raw
+score (scores from different corpora / embedders / modes are incommensurable;
+ir_07/ir_08). Raw magnitudes order and dedup hits *within* one source, and the
+loop's pool always carries them; fused (ordinal) scores appear only at the
+fan-in boundary.
+
 The shape follows ir_09 §3/§6: a small set of named roles —
 ``Planner / Formulator / Retriever / Evaluator / Reranker / Citer`` — and a loop
 whose defining feature is the **back-edge** (evaluator → reformulate) that makes
@@ -27,10 +35,12 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
-# ir owns the retrieval substrate: the Result type and the Retriever leaf
-# contract live there (one-way dependency, ir is the SSOT).
-from ir import Retriever, SearchHit
+# ir owns the retrieval substrate: the Result type, the Retriever leaf
+# contract, and the hit operations (dedup, cross-source fusion) live there
+# (one-way dependency, ir is the SSOT).
+from ir import Retriever, SearchHit, fuse_hits, tag_source
 from ir.base import best_per_artifact
+from ir.retrieve import DFLT_RRF_K, Identity
 
 #: A retrieved item — ir's :class:`~ir.base.SearchHit` (ir_09's ``Result``):
 #: a *pointer + snippet* (``text``) with a ``score`` and ``metadata``.
@@ -56,6 +66,8 @@ __all__ = [
     "identity_formulator",
     "passthrough_evaluator",
     "score_reranker",
+    "rrf_reranker",
+    "make_rrf_reranker",
     "identity_citer",
 ]
 
@@ -189,19 +201,82 @@ def passthrough_evaluator(task: SubTask, results: Sequence[Result]) -> Judgement
 
 
 def score_reranker(results: Sequence[Result]) -> Sequence[Result]:
-    """Cross-source merge (v1): one surface per artifact, ordered by descending score.
+    """Magnitude merge: one surface per artifact, ordered by descending raw score.
 
     Delegates to :func:`ir.base.best_per_artifact` (ir is the SSOT for hit
-    operations): an artifact retrieved by several queries / sources / rounds —
-    common once the back-edge re-queries — survives once, at its highest score, so
-    the merged list carries no duplicate ``artifact_id``. Also the evaluator's
-    pre-selection rank, so :func:`ir.select` never sees duplicates either.
+    operations): an artifact retrieved by several queries / rounds — common once
+    the back-edge re-queries — survives once, at its highest score. Identity is
+    ``(source, artifact_id)``, so two sources' same-id artifacts never collapse.
 
-    Note: a plain score sort assumes comparable score scales across sources
-    (true when they share an embedder + mode). A rank-based (RRF) cross-source
-    merge for heterogeneous backends is a documented follow-up.
+    A plain score sort compares raw scores **across** sources, which is only
+    sound when every source shares one score scale (same embedder + mode) — it
+    is the explicit homogeneous-sources opt-in. The default fan-in is
+    :func:`rrf_reranker`, which never compares raw scores across sources.
     """
     return best_per_artifact(results)
+
+
+def _rrf_rerank(
+    results: Sequence[Result],
+    *,
+    rrf_k: int,
+    weights: Mapping[str, float] | None,
+    identity: Identity,
+) -> Sequence[Result]:
+    """Group by ``hit.source`` and rank-fuse via :func:`ir.fuse_hits`."""
+    # None is preserved as the untagged pseudo-source key: its hits fuse as
+    # one rank group and stay unattributed (never an empty-string stamp).
+    groups: dict[str | None, list[Result]] = {}
+    for h in results:
+        groups.setdefault(h.source, []).append(h)
+    if len(groups) <= 1:
+        # One scale: the magnitude merge, with hits passed through untouched.
+        return best_per_artifact(results)
+    return fuse_hits(groups, rrf_k=rrf_k, weights=weights, identity=identity)
+
+
+def rrf_reranker(results: Sequence[Result]) -> Sequence[Result]:
+    """Cross-source merge (the default fan-in): fuse by rank, never by raw score.
+
+    Groups the accumulated pool by ``hit.source`` and delegates the merge to
+    :func:`ir.fuse_hits` (ir is the SSOT for hit operations): within each
+    source raw scores order and dedup that source's hits — one scale, sound —
+    and across sources only **ranks** interact (Reciprocal Rank Fusion), so
+    heterogeneous embedders / modes can never mis-order the merge, and
+    colliding ``artifact_id``\\ s from different sources stay distinct results
+    (identity is ``(source, artifact_id)``).
+
+    A single-source pool (or an untagged one — hits with no ``source``) keeps
+    its raw scores and exactly :func:`score_reranker`'s ordering; fused,
+    rank-derived scores only appear when there is genuinely something to fuse.
+    Each fused hit keeps its pre-fusion magnitude as
+    ``metadata["source_score"]``. For per-source weights, another ``rrf_k``,
+    or opt-in cross-source duplicate merging, use :func:`make_rrf_reranker`.
+    """
+    return _rrf_rerank(results, rrf_k=DFLT_RRF_K, weights=None, identity=None)
+
+
+def make_rrf_reranker(
+    *,
+    rrf_k: int = DFLT_RRF_K,
+    weights: Mapping[str, float] | None = None,
+    identity: Identity = None,
+) -> Reranker:
+    """A parametrized :func:`rrf_reranker` (per-source trust weights, ``rrf_k``).
+
+    Args:
+        rrf_k: the RRF rank constant (standard default 60).
+        weights: optional per-source trust dial, by source name (default 1.0
+            each) — biases the merge without ever comparing raw scores.
+        identity: opt-in cross-source duplicate detection (e.g. ``"pointer"``)
+            — see :data:`ir.retrieve.Identity`. Default: never merge across
+            sources.
+    """
+
+    def reranker(results: Sequence[Result]) -> Sequence[Result]:
+        return _rrf_rerank(results, rrf_k=rrf_k, weights=weights, identity=identity)
+
+    return reranker
 
 
 def identity_citer(results: Sequence[Result]) -> Sequence[Result]:
@@ -228,7 +303,7 @@ class SingleContextAgent:
     planner: Planner = single_subtask_planner
     formulator: Formulator = identity_formulator
     evaluator: Evaluator = passthrough_evaluator
-    reranker: Reranker = score_reranker
+    reranker: Reranker = rrf_reranker
     citer: Citer = identity_citer
     budget: Budget = field(default_factory=Budget)
 
@@ -250,7 +325,14 @@ class SingleContextAgent:
                 if retriever is None:
                     continue
                 for llq in self.formulator(current, source):
-                    found.extend(retriever(llq.query, **dict(llq.params)))
+                    # Stamp the registry key on hits the retriever did not
+                    # self-attribute (ir-backed retrievers stamp the corpus
+                    # name themselves, and their tags win), so any custom
+                    # Retriever still yields attributable hits — the fan-in
+                    # reranker merges by source.
+                    found.extend(
+                        tag_source(retriever(llq.query, **dict(llq.params)), source)
+                    )
             judged = self.evaluator(current, found[: self.budget.max_results_per_task])
             found = list(judged.relevant)
             if judged.sufficient or judged.refinement is None:
@@ -272,17 +354,22 @@ def make_search_agent(
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
     ``sources`` is a ``Mapping[name, Retriever]`` — e.g.
-    ``{"skills": ir.as_retriever("skills")}``. Every role defaults to its no-LLM
-    thin-slice implementation, so ``make_search_agent(sources)("query")`` just
-    works; inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and
-    the back-edge.
+    ``{"skills": ir.as_retriever("skills")}``, :func:`ir_sources`, or the lazy
+    ``ir.retrievers()`` view. Every role defaults to its no-LLM thin-slice
+    implementation, so ``make_search_agent(sources)("query")`` just works;
+    inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the
+    back-edge.
+
+    A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the
+    ``Result`` alias): the loop stamps provenance (``hit.source``) on its
+    output, so duck-typed hit objects raise at the tagging step.
     """
     return SingleContextAgent(
         sources=sources,
         planner=planner or single_subtask_planner,
         formulator=formulator or identity_formulator,
         evaluator=evaluator or passthrough_evaluator,
-        reranker=reranker or score_reranker,
+        reranker=reranker or rrf_reranker,
         citer=citer or identity_citer,
         budget=budget or Budget(),
     )
@@ -291,9 +378,11 @@ def make_search_agent(
 def ir_sources(*names: str, **search_defaults: Any) -> dict[str, Retriever]:
     """A source registry ``{name: Retriever}`` backed by named ``ir`` corpora.
 
-    Each name is bound to ``ir.as_retriever(name, **search_defaults)``. A thin
-    convenience; once ir ships ``registry.retrievers()`` (a lazy view), prefer
-    that. ``search_defaults`` (e.g. ``mode="hybrid"``) apply to every source.
+    Each name is bound to ``ir.as_retriever(name, **search_defaults)``, opened
+    eagerly. For the *lazy* live view over everything registered (a corpus
+    opens only when its key is first used), use ``ir.retrievers()`` instead —
+    the agent accepts either, or any ``Mapping[name, Retriever]``.
+    ``search_defaults`` (e.g. ``mode="hybrid"``) apply to every source.
     """
     import ir
 

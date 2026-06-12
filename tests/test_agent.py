@@ -39,6 +39,8 @@ def test_defaults_satisfy_role_protocols():
     assert isinstance(raglab.identity_formulator, raglab.Formulator)
     assert isinstance(raglab.passthrough_evaluator, raglab.Evaluator)
     assert isinstance(raglab.score_reranker, raglab.Reranker)
+    assert isinstance(raglab.rrf_reranker, raglab.Reranker)
+    assert isinstance(raglab.make_rrf_reranker(), raglab.Reranker)
     assert isinstance(raglab.identity_citer, raglab.Citer)
 
 
@@ -57,13 +59,19 @@ def test_query_string_or_object_equivalent():
     assert agent("q") == agent(Query(text="q"))
 
 
-def test_cross_source_merge_reranks_by_score():
+def test_cross_source_merge_is_rank_based_not_score_based():
+    # Two sources' raw scores live on different scales, so the default fan-in
+    # (rrf_reranker) fuses by per-source rank: both hits are rank 1 in their own
+    # source, and the tie breaks by source order — never by the (incomparable)
+    # raw scores. For a raw-score merge, inject score_reranker explicitly.
     sources = {
         "s1": _fake_retriever(_hits(("a", 0.3))),
         "s2": _fake_retriever(_hits(("b", 0.9))),
     }
     results = make_search_agent(sources)("q")
-    assert [r.artifact_id for r in results] == ["b", "a"]  # by score desc
+    assert [r.artifact_id for r in results] == ["a", "b"]  # source order, not score
+    by_score = make_search_agent(sources, reranker=raglab.score_reranker)("q")
+    assert [r.artifact_id for r in by_score] == ["b", "a"]  # the explicit opt-in
 
 
 def test_final_results_have_no_duplicate_artifacts():
