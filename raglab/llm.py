@@ -45,9 +45,10 @@ from .agent import (
     Formulator,
     Judgement,
     LowLevelQuery,
+    Reranker,
     Result,
     SubTask,
-    score_reranker,
+    rrf_reranker,
 )
 
 __all__ = ["make_llm_formulator", "make_llm_evaluator", "EVALUATION_PROMPT"]
@@ -147,6 +148,7 @@ def make_llm_evaluator(
     judge: Judge | None = None,
     select_strategy: str = "conservative",
     select_kwargs: Mapping[str, Any] | None = None,
+    prerank: Reranker | None = None,
     prompt: str = EVALUATION_PROMPT,
     max_result_chars: int = DFLT_MAX_RESULT_CHARS,
     **prompt_function_kwargs: Any,
@@ -170,6 +172,13 @@ def make_llm_evaluator(
             (default ``"conservative"`` — distractor-robust).
         select_kwargs: extra args forwarded to :func:`ir.select`
             (e.g. ``max_k``, ``rel``, ``min_score``).
+        prerank: the per-round merge that puts the accumulated pool best-first
+            (and deduped) before ``ir.select``. Defaults to
+            :func:`~raglab.agent.rrf_reranker` — a round's pool can already mix
+            sources (a SubTask spans several), so the same rank-based,
+            scale-safe merge as the fan-in applies; single-source rounds keep
+            raw scores. Inject :func:`~raglab.agent.score_reranker` for
+            sources known to share one score scale.
         max_result_chars: per-result text truncation in the judge prompt.
 
     Safe fallback: any judge error returns ``refinement=None`` — the control
@@ -177,6 +186,7 @@ def make_llm_evaluator(
     loop. Sufficiency without a refinement query is likewise treated as a stop.
     """
     sel_kw = dict(select_kwargs or {})
+    prerank = prerank or rrf_reranker
 
     def _ask_judge(goal: str, rendered: str) -> tuple[bool, str | None]:
         fn = (
@@ -188,9 +198,9 @@ def make_llm_evaluator(
 
     def evaluator(task: SubTask, results: Sequence[Result]) -> Judgement:
         # ``ir.select`` documents a best-first precondition; the loop accumulates
-        # hits across rounds/sources in arbitrary order, so rank them first (the
-        # same score ordering the final reranker uses).
-        ranked = score_reranker(results)
+        # hits across rounds/sources in arbitrary order, so merge them first —
+        # the same (scale-safe) merge the final fan-in reranker uses.
+        ranked = prerank(results)
         selection = ir.select(list(ranked), strategy=select_strategy, **sel_kw)
         relevant = list(selection.selected)
         rendered = (
