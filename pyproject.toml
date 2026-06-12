@@ -18,7 +18,7 @@ authors = [
 # strategies (Planner/Formulator/Evaluator) use `oa` lazily — the `llm` extra
 # below — so `import raglab` stays offline by default.
 dependencies = [
-    "ir>=0.1.12",
+    "ir>=0.1.14",
 ]
 
 [project.license]

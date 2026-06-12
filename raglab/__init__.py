@@ -47,6 +47,7 @@ from .agent import (
     score_reranker,
     single_subtask_planner,
 )
+from .llm import EVALUATION_PROMPT, make_llm_evaluator, make_llm_formulator
 
 __all__ = [
     "Query",
@@ -69,4 +70,7 @@ __all__ = [
     "passthrough_evaluator",
     "score_reranker",
     "identity_citer",
+    "make_llm_formulator",
+    "make_llm_evaluator",
+    "EVALUATION_PROMPT",
 ]
