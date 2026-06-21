@@ -10,7 +10,25 @@ version = "0.2.5"
 description = "A medley of tools to make RAG-based applications."
 readme = "README.md"
 requires-python = ">=3.10"
-keywords = []
+license = "MIT"
+keywords = [
+    "rag",
+    "retrieval",
+    "search-agent",
+    "llm",
+    "agents",
+    "information-retrieval",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 authors = [
     { name = "thorwhalen" },
 ]
@@ -21,13 +39,12 @@ dependencies = [
     "ir>=0.1.16",
 ]
 
-[project.license]
-text = "mit"
-
 [project.urls]
-Homepage = "https://github.com/thorwhalen/raglab"
+Homepage = "https://thorwhalen.github.io/raglab/"
 Repository = "https://github.com/thorwhalen/raglab"
 Documentation = "https://thorwhalen.github.io/raglab"
+Issues = "https://github.com/thorwhalen/raglab/issues"
+Changelog = "https://github.com/thorwhalen/raglab/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 llm = [
