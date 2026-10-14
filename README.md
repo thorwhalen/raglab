@@ -34,7 +34,7 @@ import raglab
 # Register named ir corpora as the agent's sources, then search across them.
 sources = raglab.ir_sources("skills", "reports", mode="hybrid")
 agent = raglab.make_search_agent(sources)
-results = agent("how do I deploy the app")     # -> list[ir.SearchHit], ranked
+results = agent("how do I deploy the app")  # -> list[ir.SearchHit], ranked
 ```
 
 A self-contained, runnable example (build a tiny corpus, search it):
@@ -46,18 +46,18 @@ import raglab
 
 docs = {
     "deploy": "deploy the app to the server with systemd units",
-    "embed":  "embed text with a model and cache the vectors",
+    "embed": "embed text with a model and cache the vectors",
     "search": "vector similarity search with metadata filters",
 }
 corpus = ir.build(
     ir.CorpusSource.from_mapping(docs, name="t", strategy=ir.WholeText()),
     store=CorpusStore.memory(),
-    embedder="light",          # numpy-only, no model download
+    embedder="light",  # numpy-only, no model download
 )
 
 agent = raglab.make_search_agent({"t": ir.as_retriever(corpus, k=3)})
 results = agent("deploy the app to the server")
-results[0].artifact_id        # -> "deploy"
+results[0].artifact_id  # -> "deploy"
 ```
 
 `sources` is any `Mapping[name, Retriever]`. Build it with
@@ -113,8 +113,8 @@ import raglab
 
 agent = raglab.make_search_agent(
     sources,
-    formulator=raglab.make_llm_formulator(),   # rewrite/expand the query (HyDE)
-    evaluator=raglab.make_llm_evaluator(),      # sufficiency + the back-edge
+    formulator=raglab.make_llm_formulator(),  # rewrite/expand the query (HyDE)
+    evaluator=raglab.make_llm_evaluator(),  # sufficiency + the back-edge
 )
 results = agent("how do I deploy the app")
 ```
@@ -176,13 +176,18 @@ Every role is just a callable matching a `Protocol`, so you can inject your own:
 ```python
 from raglab import SubTask, LowLevelQuery, Judgement, make_search_agent
 
+
 def my_planner(query, sources):
     # split into two sub-goals over all sources
-    return [SubTask(goal=g, sources=tuple(sources))
-            for g in (query.text, query.text + " examples")]
+    return [
+        SubTask(goal=g, sources=tuple(sources))
+        for g in (query.text, query.text + " examples")
+    ]
+
 
 def my_formulator(task, source):
     return [LowLevelQuery(source=source, query=task.goal, params={"k": 10})]
+
 
 agent = make_search_agent(sources, planner=my_planner, formulator=my_formulator)
 ```
