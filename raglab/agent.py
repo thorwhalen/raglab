@@ -178,6 +178,61 @@ class Budget:
     max_results_per_task: int = 50
 
 
+@runtime_checkable
+class PoolCap(Protocol):
+    """Bound the pool the evaluator sees to at most ``limit`` results.
+
+    A governor decision (which hits survive the budget), injected like every other
+    role so a strategy can be swapped without touching the loop. It must return
+    hits **unchanged** — never re-scored — because the pool keeps raw per-source
+    magnitudes until the fan-in reranker.
+    """
+
+    def __call__(self, results: Sequence[Result], limit: int) -> list[Result]: ...
+
+
+def rank_fair_cap(results: Sequence[Result], limit: int) -> list[Result]:
+    """Keep ``limit`` hits, taking the best of each source in turn (the default).
+
+    Groups the pool by ``hit.source`` (in first-arrival order), orders each group
+    best-first by its own raw score — sound, since one source is one score scale —
+    and deals hits round-robin across the groups. So a late source's strong hits are
+    never cut before the evaluator sees them, and no score ever crosses a source
+    boundary or is rewritten (unlike pre-ranking with the RRF reranker, whose fused
+    ordinal scores must never re-enter the pool). A pool already within ``limit`` is
+    returned as is, in arrival order.
+    """
+    if limit <= 0:
+        return []
+    if len(results) <= limit:
+        return list(results)
+    groups: dict[str | None, list[Result]] = {}
+    for hit in results:
+        groups.setdefault(hit.source, []).append(hit)
+    queues = [
+        sorted(hits, key=lambda h: h.score, reverse=True) for hits in groups.values()
+    ]
+    capped: list[Result] = []
+    depth = 0
+    while len(capped) < limit:
+        for queue in queues:
+            if depth < len(queue):
+                capped.append(queue[depth])
+                if len(capped) == limit:
+                    break
+        depth += 1
+    return capped
+
+
+def arrival_order_cap(results: Sequence[Result], limit: int) -> list[Result]:
+    """Keep the first ``limit`` hits in arrival order (source order x query order).
+
+    The pre-governor behaviour: a late source's strong hits can be cut before the
+    evaluator sees them. Kept as an explicit opt-in (``pool_cap=arrival_order_cap``).
+    """
+    return list(results[: max(0, limit)])
+
+
 # --------------------------------------------------------------------------- #
 # Default role implementations (the no-LLM thin slice) — ir_09 §8 step 2
 # --------------------------------------------------------------------------- #
@@ -306,6 +361,7 @@ class SingleContextAgent:
     reranker: Reranker = rrf_reranker
     citer: Citer = identity_citer
     budget: Budget = field(default_factory=Budget)
+    pool_cap: PoolCap = rank_fair_cap
 
     def __call__(self, query: str | Query) -> list[Result]:
         """Run the agent for *query*; returns the final ranked, cited results."""
@@ -333,7 +389,9 @@ class SingleContextAgent:
                     found.extend(
                         tag_source(retriever(llq.query, **dict(llq.params)), source)
                     )
-            judged = self.evaluator(current, found[: self.budget.max_results_per_task])
+            judged = self.evaluator(
+                current, self.pool_cap(found, self.budget.max_results_per_task)
+            )
             found = list(judged.relevant)
             if judged.sufficient or judged.refinement is None:
                 break
@@ -350,6 +408,7 @@ def make_search_agent(
     reranker: Reranker | None = None,
     citer: Citer | None = None,
     budget: Budget | None = None,
+    pool_cap: PoolCap | None = None,
 ) -> SingleContextAgent:
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
@@ -372,6 +431,7 @@ def make_search_agent(
         reranker=reranker or rrf_reranker,
         citer=citer or identity_citer,
         budget=budget or Budget(),
+        pool_cap=pool_cap or rank_fair_cap,
     )
 
 

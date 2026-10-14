@@ -286,3 +286,88 @@ def test_score_reranker_remains_the_homogeneous_opt_in():
     pytest.importorskip("ir")
     pool = _hits(("a", 0.3), source="s1") + _hits(("b", 0.9), source="s2")
     assert [h.artifact_id for h in raglab.score_reranker(pool)] == ["b", "a"]
+
+
+# ----- the budget cap: rank-fair, scale-safe (raglab#5) ---------------------- #
+
+
+def _capturing_evaluator(seen):
+    def evaluator(task, results):
+        seen.append(list(results))
+        return Judgement(list(results), sufficient=True)
+
+    return evaluator
+
+
+def test_small_cap_lets_both_disparate_sources_top_hits_through():
+    # source "big" arrives first with many BM25-scale hits; "cos" arrives last with
+    # cosine-scale hits. Arrival-order truncation would never show "cos" at all.
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), ("c2", 0.4), source="cos")
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=4),
+    )("q")
+    pool = seen[0]
+    assert len(pool) == 4
+    ids = [h.artifact_id for h in pool]
+    assert ids[:2] == ["b0", "c_best"]  # each source's best, dealt round-robin
+    assert set(ids) == {"b0", "b1", "c_best", "c2"}
+
+
+def test_capped_pool_keeps_raw_per_source_magnitudes():
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), ("c2", 0.4), source="cos")
+    originals = {(h.source, h.artifact_id): h for h in big + cos}
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=3),
+    )("q")
+    for hit in seen[0]:
+        assert hit == originals[(hit.source, hit.artifact_id)]  # untouched
+        assert "source_rank" not in hit.metadata
+        assert "source_score" not in hit.metadata  # no fused-score stamp either
+
+
+def test_rank_fair_cap_orders_within_source_by_its_own_score():
+    # one source, scores out of arrival order (e.g. two formulator queries)
+    pool = _hits(("lo", 0.1), ("hi", 0.9), ("mid", 0.5), source="s")
+    assert [h.artifact_id for h in raglab.rank_fair_cap(pool, 2)] == ["hi", "mid"]
+    # untagged hits are one group of their own
+    mixed = _hits(("u1", 3.0), ("u2", 2.0)) + _hits(("t1", 0.5), source="t")
+    assert [h.artifact_id for h in raglab.rank_fair_cap(mixed, 2)] == ["u1", "t1"]
+
+
+def test_rank_fair_cap_within_limit_and_degenerate_limits():
+    pool = _hits(("a", 0.1), ("b", 0.9), source="s")
+    assert raglab.rank_fair_cap(pool, 5) == pool  # within budget: arrival order
+    assert raglab.rank_fair_cap(pool, 0) == []
+    assert raglab.rank_fair_cap(pool, -1) == []
+    uneven = _hits(*[(f"x{i}", 1.0 - i / 10) for i in range(5)], source="x") + _hits(
+        ("y0", 9.0), source="y"
+    )
+    # a short source runs dry; the long one fills the rest
+    assert [h.artifact_id for h in raglab.rank_fair_cap(uneven, 4)] == [
+        "x0",
+        "y0",
+        "x1",
+        "x2",
+    ]
+
+
+def test_pool_cap_is_injectable_and_arrival_order_is_the_opt_out():
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), source="cos")
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=3),
+        pool_cap=raglab.arrival_order_cap,
+    )("q")
+    assert [h.artifact_id for h in seen[0]] == ["b0", "b1", "b2"]
+    assert isinstance(raglab.rank_fair_cap, raglab.PoolCap)
