@@ -29,7 +29,10 @@ control loop, with concrete tools injected at the leaves.
   cyclic-graph runner. This back-edge is what makes it an agent vs a DAG.
 - **Budget governor** (`max_rounds` / `max_sources_per_task` / `max_results_per_task`);
   termination as a **separately injected policy** (ir_09 §9), not folded into the
-  evaluator.
+  evaluator. Pool bounding is an injected `pool_cap` policy (default
+  `rank_fair_cap`: per-source best-first, round-robin). It must return hits
+  untouched — never pre-rank the pool with the RRF reranker (fused scores must not
+  re-enter the pool).
 - **Source registry** = a live `Mapping[name, Retriever]` across *heterogeneous*
   backends (ir corpora + web/SQL/graph); cross-source merge + global rerank at
   the fan-in point.

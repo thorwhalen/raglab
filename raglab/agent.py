@@ -31,6 +31,7 @@ Dependency direction is one-way: `raglab` imports `ir`; `ir` never imports
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
@@ -59,6 +60,9 @@ __all__ = [
     "Reranker",
     "Citer",
     "Budget",
+    "PoolCap",
+    "rank_fair_cap",
+    "arrival_order_cap",
     "SingleContextAgent",
     "make_search_agent",
     "ir_sources",
@@ -176,6 +180,70 @@ class Budget:
     max_rounds: int = 3
     max_sources_per_task: int = 4
     max_results_per_task: int = 50
+
+
+@runtime_checkable
+class PoolCap(Protocol):
+    """Bound the pool the evaluator sees to at most ``limit`` results.
+
+    A governor decision (which hits survive the budget), injected like every other
+    role so a strategy can be swapped without touching the loop. It must return
+    hits **unchanged** — never re-scored — because the pool keeps raw per-source
+    magnitudes until the fan-in reranker.
+    """
+
+    def __call__(self, results: Sequence[Result], limit: int) -> list[Result]: ...
+
+
+def _rank_key(hit: Result) -> float:
+    """A hit's raw score for ordering *within its source*; a missing or NaN score is last."""
+    score = hit.score
+    if isinstance(score, (int, float)) and not math.isnan(score):
+        return float(score)
+    return -math.inf
+
+
+def rank_fair_cap(results: Sequence[Result], limit: int) -> list[Result]:
+    """Keep at most ``limit`` hits, taking the best of each source in turn (the default).
+
+    Groups the pool by ``hit.source`` (in first-arrival order; untagged hits are one
+    group), collapses each group to one hit per artifact (its best surface, as
+    :func:`ir.base.best_per_artifact` does), orders the group best-first by its own raw
+    score -- sound, since one source is one score scale -- and deals hits round-robin
+    across the groups. So a late source's strong hits are never cut before the evaluator
+    sees them, a duplicate never takes a slot, and no score ever crosses a source
+    boundary or is rewritten (unlike pre-ranking with the RRF reranker, whose fused
+    ordinal scores must never re-enter the pool). The output is in that dealt order
+    whatever the pool's size. A missing or NaN score sorts last in its source.
+    """
+    if limit <= 0:
+        return []
+    groups: dict[str | None, dict[str, Result]] = {}
+    for hit in results:
+        best = groups.setdefault(hit.source, {})
+        cur = best.get(hit.artifact_id)
+        if cur is None or _rank_key(hit) > _rank_key(cur):
+            best[hit.artifact_id] = hit
+    queues = [
+        sorted(best.values(), key=_rank_key, reverse=True) for best in groups.values()
+    ]
+    capped: list[Result] = []
+    for depth in range(max((len(q) for q in queues), default=0)):
+        for queue in queues:
+            if depth < len(queue):
+                capped.append(queue[depth])
+                if len(capped) == limit:
+                    return capped
+    return capped
+
+
+def arrival_order_cap(results: Sequence[Result], limit: int) -> list[Result]:
+    """Keep the first ``limit`` hits in arrival order (source order x query order).
+
+    The pre-governor behaviour: a late source's strong hits can be cut before the
+    evaluator sees them. Kept as an explicit opt-in (``pool_cap=arrival_order_cap``).
+    """
+    return list(results[: max(0, limit)])
 
 
 # --------------------------------------------------------------------------- #
@@ -306,6 +374,7 @@ class SingleContextAgent:
     reranker: Reranker = rrf_reranker
     citer: Citer = identity_citer
     budget: Budget = field(default_factory=Budget)
+    pool_cap: PoolCap = rank_fair_cap
 
     def __call__(self, query: str | Query) -> list[Result]:
         """Run the agent for *query*; returns the final ranked, cited results."""
@@ -317,9 +386,15 @@ class SingleContextAgent:
         return list(self.citer(ranked))
 
     def _run_task(self, task: SubTask) -> list[Result]:
-        found: list[Result] = []
+        # `kept` is what the evaluator judged relevant last round: governor-approved,
+        # carried into the next round untouched. Only a round's *new* hits compete for
+        # the rest of the budget (`pool_cap`), so a re-query can never evict a hit the
+        # evaluator already kept, nor spend a slot re-offering it.
+        kept: list[Result] = []
         current = task
+        limit = self.budget.max_results_per_task
         for _ in range(max(1, self.budget.max_rounds)):
+            found: list[Result] = []
             for source in current.sources[: self.budget.max_sources_per_task]:
                 retriever = self.sources.get(source)
                 if retriever is None:
@@ -333,12 +408,15 @@ class SingleContextAgent:
                     found.extend(
                         tag_source(retriever(llq.query, **dict(llq.params)), source)
                     )
-            judged = self.evaluator(current, found[: self.budget.max_results_per_task])
-            found = list(judged.relevant)
+            seen = {(h.source, h.artifact_id) for h in kept}
+            fresh = [h for h in found if (h.source, h.artifact_id) not in seen]
+            pool = kept + self.pool_cap(fresh, max(0, limit - len(kept)))
+            judged = self.evaluator(current, pool)
+            kept = list(judged.relevant)
             if judged.sufficient or judged.refinement is None:
                 break
             current = judged.refinement  # the back-edge: re-query
-        return found
+        return kept
 
 
 def make_search_agent(
@@ -350,6 +428,7 @@ def make_search_agent(
     reranker: Reranker | None = None,
     citer: Citer | None = None,
     budget: Budget | None = None,
+    pool_cap: PoolCap | None = None,
 ) -> SingleContextAgent:
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
@@ -372,6 +451,7 @@ def make_search_agent(
         reranker=reranker or rrf_reranker,
         citer=citer or identity_citer,
         budget=budget or Budget(),
+        pool_cap=pool_cap or rank_fair_cap,
     )
 
 

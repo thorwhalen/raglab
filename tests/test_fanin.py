@@ -286,3 +286,144 @@ def test_score_reranker_remains_the_homogeneous_opt_in():
     pytest.importorskip("ir")
     pool = _hits(("a", 0.3), source="s1") + _hits(("b", 0.9), source="s2")
     assert [h.artifact_id for h in raglab.score_reranker(pool)] == ["b", "a"]
+
+
+# ----- the budget cap: rank-fair, scale-safe (raglab#5) ---------------------- #
+
+
+def _capturing_evaluator(seen):
+    def evaluator(task, results):
+        seen.append(list(results))
+        return Judgement(list(results), sufficient=True)
+
+    return evaluator
+
+
+def test_small_cap_lets_both_disparate_sources_top_hits_through():
+    # source "big" arrives first with many BM25-scale hits; "cos" arrives last with
+    # cosine-scale hits. Arrival-order truncation would never show "cos" at all.
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), ("c2", 0.4), source="cos")
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=4),
+    )("q")
+    pool = seen[0]
+    assert len(pool) == 4
+    ids = [h.artifact_id for h in pool]
+    assert ids[:2] == ["b0", "c_best"]  # each source's best, dealt round-robin
+    assert set(ids) == {"b0", "b1", "c_best", "c2"}
+
+
+def test_capped_pool_keeps_raw_per_source_magnitudes():
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), ("c2", 0.4), source="cos")
+    originals = {(h.source, h.artifact_id): h for h in big + cos}
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=3),
+    )("q")
+    for hit in seen[0]:
+        assert hit == originals[(hit.source, hit.artifact_id)]  # untouched
+        assert "source_rank" not in hit.metadata
+        assert "source_score" not in hit.metadata  # no fused-score stamp either
+
+
+def test_rank_fair_cap_orders_within_source_by_its_own_score():
+    # one source, scores out of arrival order (e.g. two formulator queries)
+    pool = _hits(("lo", 0.1), ("hi", 0.9), ("mid", 0.5), source="s")
+    assert [h.artifact_id for h in raglab.rank_fair_cap(pool, 2)] == ["hi", "mid"]
+    # untagged hits are one group of their own
+    mixed = _hits(("u1", 3.0), ("u2", 2.0)) + _hits(("t1", 0.5), source="t")
+    assert [h.artifact_id for h in raglab.rank_fair_cap(mixed, 2)] == ["u1", "t1"]
+
+
+def test_rank_fair_cap_within_limit_and_degenerate_limits():
+    pool = _hits(("a", 0.1), ("b", 0.9), source="s")
+    # within budget nothing is cut, and the order is the same dealt order as above it
+    assert [h.artifact_id for h in raglab.rank_fair_cap(pool, 5)] == ["b", "a"]
+    assert raglab.rank_fair_cap(pool, 0) == []
+    assert raglab.rank_fair_cap(pool, -1) == []
+    uneven = _hits(*[(f"x{i}", 1.0 - i / 10) for i in range(5)], source="x") + _hits(
+        ("y0", 9.0), source="y"
+    )
+    # a short source runs dry; the long one fills the rest
+    assert [h.artifact_id for h in raglab.rank_fair_cap(uneven, 4)] == [
+        "x0",
+        "y0",
+        "x1",
+        "x2",
+    ]
+
+
+def test_pool_cap_is_injectable_and_arrival_order_is_the_opt_out():
+    big = _hits(*[(f"b{i}", 40.0 - i) for i in range(10)], source="big")
+    cos = _hits(("c_best", 0.95), source="cos")
+    seen = []
+    make_search_agent(
+        {"big": _fake_retriever(big), "cos": _fake_retriever(cos)},
+        evaluator=_capturing_evaluator(seen),
+        budget=raglab.Budget(max_results_per_task=3),
+        pool_cap=raglab.arrival_order_cap,
+    )("q")
+    assert [h.artifact_id for h in seen[0]] == ["b0", "b1", "b2"]
+    assert isinstance(raglab.rank_fair_cap, raglab.PoolCap)
+
+
+def test_cap_collapses_duplicates_and_tolerates_missing_scores():
+    dup = _hits(("a", 0.9), ("a", 0.5), ("b", 0.8), ("c", 0.7), source="s")
+    assert [h.artifact_id for h in raglab.rank_fair_cap(dup, 3)] == ["a", "b", "c"]
+    assert raglab.rank_fair_cap(dup, 3)[0].score == 0.9  # the best surface survives
+    odd = _hits(("nan", float("nan")), ("none", None), ("ok", 0.1), source="s")
+    assert raglab.rank_fair_cap(odd, 1)[0].artifact_id == "ok"
+
+
+def _refine_once(seen, keep):
+    """An evaluator that keeps only `keep` in round one and asks for a re-query."""
+
+    def evaluator(task, results):
+        seen.append(list(results))
+        if len(seen) == 1:
+            kept = [h for h in results if h.artifact_id in keep]
+            return Judgement(
+                kept, sufficient=False, refinement=SubTask("again", task.sources)
+            )
+        return Judgement(list(results), sufficient=True)
+
+    return evaluator
+
+
+def _rounds(*per_round):
+    """A retriever returning a different canned hit list on each call."""
+    calls = iter(per_round)
+    return lambda query, **kw: list(next(calls))
+
+
+def test_back_edge_never_evicts_a_hit_the_evaluator_kept():
+    round1 = _hits(
+        ("weak_but_relevant", 0.1), ("junk1", 0.9), ("junk2", 0.8), source="s"
+    )
+    round2 = _hits(("new1", 0.95), ("new2", 0.85), ("new3", 0.7), source="s")
+    seen = []
+    out = make_search_agent(
+        {"s": _rounds(round1, round2)},
+        evaluator=_refine_once(seen, {"weak_but_relevant"}),
+        budget=raglab.Budget(max_results_per_task=3),
+    )("q")
+    assert [h.artifact_id for h in seen[1]] == ["weak_but_relevant", "new1", "new2"]
+    assert "weak_but_relevant" in {h.artifact_id for h in out}
+
+
+def test_back_edge_does_not_spend_slots_on_re_retrieved_hits():
+    same = _hits(("a", 0.9), ("b", 0.8), ("c", 0.7), source="s")
+    seen = []
+    make_search_agent(
+        {"s": _rounds(same, same)},
+        evaluator=_refine_once(seen, {"a"}),
+        budget=raglab.Budget(max_results_per_task=3),
+    )("q")
+    assert [h.artifact_id for h in seen[1]] == ["a", "b", "c"]  # no second "a"
