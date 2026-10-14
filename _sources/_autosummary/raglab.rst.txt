@@ -1,0 +1,50 @@
+﻿raglab
+======
+
+.. automodule:: raglab
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      rank_fair_cap
+      arrival_order_cap
+      make_search_agent
+      ir_sources
+      single_subtask_planner
+      identity_formulator
+      passthrough_evaluator
+      score_reranker
+      rrf_reranker
+      make_rrf_reranker
+      identity_citer
+      make_llm_formulator
+      make_llm_evaluator
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Query
+      SubTask
+      LowLevelQuery
+      Judgement
+      Result
+      Planner
+      Formulator
+      Evaluator
+      Reranker
+      Citer
+      Budget
+      PoolCap
+      SingleContextAgent
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   agent
+   llm

@@ -1,0 +1,46 @@
+raglab.agent
+============
+
+.. automodule:: raglab.agent
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Result
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      rank_fair_cap
+      arrival_order_cap
+      make_search_agent
+      ir_sources
+      single_subtask_planner
+      identity_formulator
+      passthrough_evaluator
+      score_reranker
+      rrf_reranker
+      make_rrf_reranker
+      identity_citer
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Query
+      SubTask
+      LowLevelQuery
+      Judgement
+      Result
+      Planner
+      Formulator
+      Evaluator
+      Reranker
+      Citer
+      Budget
+      PoolCap
+      SingleContextAgent
+   

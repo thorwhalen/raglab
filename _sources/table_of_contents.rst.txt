@@ -1,7 +1,0 @@
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   module_docs/raglab
-   module_docs/raglab/agent
-   module_docs/raglab/llm

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="raglab.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="raglab.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>raglab &#8212; raglab</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=05df9aa6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="../_static/documentation_options.js?v=fc7d8818"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/raglab';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="raglab.agent" href="raglab.agent.html" />
+    <link rel="prev" title="API reference" href="../api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.6" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">raglab</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/raglab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/raglab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">raglab</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="raglab.agent.html">raglab.agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raglab.llm.html">raglab.llm</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">raglab</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-raglab">
+<span id="raglab"></span><h1>raglab<a class="headerlink" href="#module-raglab" title="Link to this heading">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">raglab</span></code> — the agentic-search / RAG orchestration layer on top of <code class="docutils literal notranslate"><span class="pre">ir</span></code>.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">raglab</span></code> turns a retrieval substrate into a <em>Composable Search Agent</em> (the ir_09
+architecture): a small set of injected <strong>roles</strong> — Planner, Formulator,
+Retriever, Evaluator, Reranker, Citer — wired by a control loop whose back-edge
+(evaluator → reformulate) is what makes it an agent rather than a DAG. Concrete
+tools live at the leaves: an <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpus becomes one <code class="docutils literal notranslate"><span class="pre">Retriever</span></code> via
+<code class="docutils literal notranslate"><span class="pre">ir.as_retriever</span></code>.</p>
+<p>Quick start (the no-LLM thin slice — runs offline):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">raglab</span>
+
+<span class="c1"># register ir corpora as the agent's sources, then search across them:</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">ir_sources</span><span class="p">(</span><span class="s2">"skills"</span><span class="p">,</span> <span class="s2">"reports"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"hybrid"</span><span class="p">)</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>      <span class="c1"># ranked ir.SearchHits</span>
+</pre></div>
+</div>
+<p>Inject an LLM <code class="docutils literal notranslate"><span class="pre">formulator</span></code> (query rewrite/HyDE) and <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> (sufficiency</p>
+<ul class="simple">
+<li><p>refinement) to turn on query understanding and the back-edge. Dependency
+direction is one-way: <code class="docutils literal notranslate"><span class="pre">raglab</span></code> imports <code class="docutils literal notranslate"><span class="pre">ir</span></code>; <code class="docutils literal notranslate"><span class="pre">ir</span></code> never imports <code class="docutils literal notranslate"><span class="pre">raglab</span></code>.</p></li>
+</ul>
+<p>&gt; Fresh start (v0.2.0+). This repo took over the <code class="docutils literal notranslate"><span class="pre">raglab</span></code> PyPI name; the older
+&gt; backend now lives at <code class="docutils literal notranslate"><span class="pre">raglab_bak</span></code>. Development is just beginning.</p>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.rank_fair_cap" title="raglab.rank_fair_cap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rank_fair_cap</span></code></a>(results, limit)</p></td>
+<td><p>Keep at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> hits, taking the best of each source in turn (the default).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.arrival_order_cap" title="raglab.arrival_order_cap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arrival_order_cap</span></code></a>(results, limit)</p></td>
+<td><p>Keep the first <code class="docutils literal notranslate"><span class="pre">limit</span></code> hits in arrival order (source order x query order).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.make_search_agent" title="raglab.make_search_agent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_search_agent</span></code></a>(sources, *[, planner, ...])</p></td>
+<td><p>Build a <a class="reference internal" href="#raglab.SingleContextAgent" title="raglab.SingleContextAgent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a> over <em>sources</em> with smart defaults.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.ir_sources" title="raglab.ir_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir_sources</span></code></a>(*names, **search_defaults)</p></td>
+<td><p>A source registry <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">Retriever}</span></code> backed by named <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpora.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.single_subtask_planner" title="raglab.single_subtask_planner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">single_subtask_planner</span></code></a>(query, sources)</p></td>
+<td><p>Trivial planner: one sub-task over <em>all</em> registered sources, no decomposition.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.identity_formulator" title="raglab.identity_formulator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identity_formulator</span></code></a>(task, source)</p></td>
+<td><p>Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.passthrough_evaluator" title="raglab.passthrough_evaluator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">passthrough_evaluator</span></code></a>(task, results)</p></td>
+<td><p>Pass-through critic: keep everything, declare sufficient, never re-query.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.score_reranker" title="raglab.score_reranker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score_reranker</span></code></a>(results)</p></td>
+<td><p>Magnitude merge: one surface per artifact, ordered by descending raw score.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.rrf_reranker" title="raglab.rrf_reranker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rrf_reranker</span></code></a>(results)</p></td>
+<td><p>Cross-source merge (the default fan-in): fuse by rank, never by raw score.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.make_rrf_reranker" title="raglab.make_rrf_reranker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_rrf_reranker</span></code></a>(*[, rrf_k, weights, identity])</p></td>
+<td><p>A parametrized <a class="reference internal" href="#raglab.rrf_reranker" title="raglab.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a> (per-source trust weights, <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.identity_citer" title="raglab.identity_citer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identity_citer</span></code></a>(results)</p></td>
+<td><p>No-op citer (verification needs a generated claim — that lives in srag).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.make_llm_formulator" title="raglab.make_llm_formulator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_llm_formulator</span></code></a>(*[, formulate, params])</p></td>
+<td><p>An LLM-backed raglab <a class="reference internal" href="raglab.agent.html#raglab.agent.Formulator" title="raglab.agent.Formulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Formulator</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.make_llm_evaluator" title="raglab.make_llm_evaluator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_llm_evaluator</span></code></a>(*[, judge, ...])</p></td>
+<td><p>An LLM-backed raglab <a class="reference internal" href="raglab.agent.html#raglab.agent.Evaluator" title="raglab.agent.Evaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code></a> (turns on the back-edge).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.Query" title="raglab.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Query</span></code></a>(text[, constraints])</p></td>
+<td><p>A user intent: free text plus optional structured constraints.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.SubTask" title="raglab.SubTask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SubTask</span></code></a>(goal, sources)</p></td>
+<td><p>A planner's unit of work: a sub-goal bound to a set of registered sources.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.LowLevelQuery" title="raglab.LowLevelQuery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a>(source, query[, params])</p></td>
+<td><p>One concrete query against one source.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.Judgement" title="raglab.Judgement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Judgement</span></code></a>(relevant, sufficient[, refinement])</p></td>
+<td><p>An evaluator's verdict over a round's results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.Result" title="raglab.Result"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Result</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.Planner" title="raglab.Planner"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Planner</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Decompose a query into sub-tasks and select sources for each.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.Formulator" title="raglab.Formulator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Formulator</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Turn a sub-task + one source into concrete low-level queries.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.Evaluator" title="raglab.Evaluator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Evaluator</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Judge relevance + sufficiency; optionally emit a refinement (back-edge).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.Reranker" title="raglab.Reranker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Reranker</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Produce the final ordering over the (cross-source) merged results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.Citer" title="raglab.Citer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Citer</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Confirm/annotate that each result supports its use (identity by default).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.Budget" title="raglab.Budget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Budget</span></code></a>([max_rounds, max_sources_per_task, ...])</p></td>
+<td><p>Loop bounds: the safety net under the (harder) sufficiency decision.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#raglab.PoolCap" title="raglab.PoolCap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PoolCap</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Bound the pool the evaluator sees to at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#raglab.SingleContextAgent" title="raglab.SingleContextAgent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a>(sources[, planner, ...])</p></td>
+<td><p>One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Budget">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Budget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_rounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_sources_per_task</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_results_per_task</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Budget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Budget" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Loop bounds: the safety net under the (harder) sufficiency decision.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Citer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Citer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Citer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Citer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Confirm/annotate that each result supports its use (identity by default).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Evaluator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Evaluator" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Judge relevance + sufficiency; optionally emit a refinement (back-edge).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Formulator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Formulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Formulator" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Turn a sub-task + one source into concrete low-level queries.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Judgement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Judgement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relevant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sufficient</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refinement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Judgement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Judgement" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>An evaluator’s verdict over a round’s results.</p>
+<p><code class="docutils literal notranslate"><span class="pre">relevant</span></code> is the kept subset; <code class="docutils literal notranslate"><span class="pre">sufficient</span></code> says whether to stop; a
+non-<code class="docutils literal notranslate"><span class="pre">None</span></code> <code class="docutils literal notranslate"><span class="pre">refinement</span></code> is the <strong>back-edge</strong> — the next sub-task to
+re-query with. The pass-through default returns <code class="docutils literal notranslate"><span class="pre">sufficient=True</span></code> and no
+refinement (no loop).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.LowLevelQuery">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">LowLevelQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#LowLevelQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.LowLevelQuery" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One concrete query against one source.</p>
+<p><code class="docutils literal notranslate"><span class="pre">query</span></code> is the text handed to the source’s <code class="xref py py-data docutils literal notranslate"><span class="pre">Retriever</span></code>; <code class="docutils literal notranslate"><span class="pre">params</span></code>
+are per-call retriever overrides (e.g. <code class="docutils literal notranslate"><span class="pre">mode</span></code> / <code class="docutils literal notranslate"><span class="pre">filter</span></code> / <code class="docutils literal notranslate"><span class="pre">k</span></code> for an
+ir corpus). A formulator turns a <a class="reference internal" href="#raglab.SubTask" title="raglab.SubTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubTask</span></code></a> into these.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Planner">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Planner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Planner" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Decompose a query into sub-tasks and select sources for each.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.PoolCap">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">PoolCap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#PoolCap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.PoolCap" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Bound the pool the evaluator sees to at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> results.</p>
+<p>A governor decision (which hits survive the budget), injected like every other
+role so a strategy can be swapped without touching the loop. It must return
+hits <strong>unchanged</strong> — never re-scored — because the pool keeps raw per-source
+magnitudes until the fan-in reranker.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Query">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Query" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A user intent: free text plus optional structured constraints.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.Reranker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#Reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.Reranker" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Produce the final ordering over the (cross-source) merged results.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="raglab.Result">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">Result</span></span><a class="headerlink" href="#raglab.Result" title="Link to this definition">#</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">SingleContextAgent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">planner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">single_subtask_planner&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">identity_formulator&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">passthrough_evaluator&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reranker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">rrf_reranker&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">identity_citer&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">budget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_cap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">rank_fair_cap&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#SingleContextAgent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.SingleContextAgent" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).</p>
+<p>The loop is fixed; every <em>decision</em> is an injected role. Promotion to a
+multi-agent orchestrator (ir_09 §7) swaps this class while keeping the same
+role contracts. The <strong>back-edge</strong> is the single line <code class="docutils literal notranslate"><span class="pre">current</span> <span class="pre">=</span>
+<span class="pre">judged.refinement</span></code> in <code class="xref py py-meth docutils literal notranslate"><span class="pre">_run_task()</span></code> — that is what makes this an agent.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.citer">
+<span class="sig-name descname"><span class="pre">citer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.citer" title="Link to this definition">#</a></dt>
+<dd><p>No-op citer (verification needs a generated claim — that lives in srag).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.evaluator">
+<span class="sig-name descname"><span class="pre">evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.evaluator" title="Link to this definition">#</a></dt>
+<dd><p>Pass-through critic: keep everything, declare sufficient, never re-query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Judgement" title="raglab.agent.Judgement"><code class="xref py py-class docutils literal notranslate"><span class="pre">Judgement</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.formulator">
+<span class="sig-name descname"><span class="pre">formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.formulator" title="Link to this definition">#</a></dt>
+<dd><p>Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="raglab.agent.html#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.planner">
+<span class="sig-name descname"><span class="pre">planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.planner" title="Link to this definition">#</a></dt>
+<dd><p>Trivial planner: one sub-task over <em>all</em> registered sources, no decomposition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="raglab.agent.html#raglab.agent.SubTask" title="raglab.agent.SubTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubTask</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.pool_cap">
+<span class="sig-name descname"><span class="pre">pool_cap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.pool_cap" title="Link to this definition">#</a></dt>
+<dd><p>Keep at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> hits, taking the best of each source in turn (the default).</p>
+<p>Groups the pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> (in first-arrival order; untagged hits are one
+group), collapses each group to one hit per artifact (its best surface, as
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> does), orders the group best-first by its own raw
+score – sound, since one source is one score scale – and deals hits round-robin
+across the groups. So a late source’s strong hits are never cut before the evaluator
+sees them, a duplicate never takes a slot, and no score ever crosses a source
+boundary or is rewritten (unlike pre-ranking with the RRF reranker, whose fused
+ordinal scores must never re-enter the pool). The output is in that dealt order
+whatever the pool’s size. A missing or NaN score sorts last in its source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="raglab.SingleContextAgent.reranker">
+<span class="sig-name descname"><span class="pre">reranker</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#raglab.SingleContextAgent.reranker" title="Link to this definition">#</a></dt>
+<dd><p>Cross-source merge (the default fan-in): fuse by rank, never by raw score.</p>
+<p>Groups the accumulated pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> and delegates the merge to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.fuse_hits()</span></code> (ir is the SSOT for hit operations): within each
+source raw scores order and dedup that source’s hits — one scale, sound —
+and across sources only <strong>ranks</strong> interact (Reciprocal Rank Fusion), so
+heterogeneous embedders / modes can never mis-order the merge, and
+colliding <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>s from different sources stay distinct results
+(identity is <code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>).</p>
+<p>A single-source pool (or an untagged one — hits with no <code class="docutils literal notranslate"><span class="pre">source</span></code>) keeps
+its raw scores and exactly <a class="reference internal" href="#raglab.score_reranker" title="raglab.score_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">score_reranker()</span></code></a>’s ordering; fused,
+rank-derived scores only appear when there is genuinely something to fuse.
+Each fused hit keeps its pre-fusion magnitude as
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;source_score&quot;]</span></code>. For per-source weights, another <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>,
+or opt-in cross-source duplicate merging, use <a class="reference internal" href="#raglab.make_rrf_reranker" title="raglab.make_rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="raglab.SubTask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">SubTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">goal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#SubTask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.SubTask" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A planner’s unit of work: a sub-goal bound to a set of registered sources.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.arrival_order_cap">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">arrival_order_cap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#arrival_order_cap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.arrival_order_cap" title="Link to this definition">#</a></dt>
+<dd><p>Keep the first <code class="docutils literal notranslate"><span class="pre">limit</span></code> hits in arrival order (source order x query order).</p>
+<p>The pre-governor behaviour: a late source’s strong hits can be cut before the
+evaluator sees them. Kept as an explicit opt-in (<code class="docutils literal notranslate"><span class="pre">pool_cap=arrival_order_cap</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.identity_citer">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">identity_citer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#identity_citer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.identity_citer" title="Link to this definition">#</a></dt>
+<dd><p>No-op citer (verification needs a generated claim — that lives in srag).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.identity_formulator">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">identity_formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#identity_formulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.identity_formulator" title="Link to this definition">#</a></dt>
+<dd><p>Identity formulator: the sub-goal verbatim as one query (no rewrite/HyDE).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="raglab.agent.html#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.ir_sources">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">ir_sources</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">search_defaults</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#ir_sources"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.ir_sources" title="Link to this definition">#</a></dt>
+<dd><p>A source registry <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">Retriever}</span></code> backed by named <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpora.</p>
+<p>Each name is bound to <code class="docutils literal notranslate"><span class="pre">ir.as_retriever(name,</span> <span class="pre">**search_defaults)</span></code>, opened
+eagerly. For the <em>lazy</em> live view over everything registered (a corpus
+opens only when its key is first used), use <code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> instead —
+the agent accepts either, or any <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code>.
+<code class="docutils literal notranslate"><span class="pre">search_defaults</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">mode=&quot;hybrid&quot;</span></code>) apply to every source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.make_llm_evaluator">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">make_llm_evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">judge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_strategy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'conservative'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prerank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'A</span> <span class="pre">search</span> <span class="pre">agent</span> <span class="pre">is</span> <span class="pre">pursuing</span> <span class="pre">this</span> <span class="pre">goal:\\n\\n{goal}\\n\\nA</span> <span class="pre">calibrated</span> <span class="pre">selector</span> <span class="pre">reviewed</span> <span class="pre">the</span> <span class="pre">retrieved</span> <span class="pre">candidates</span> <span class="pre">and</span> <span class="pre">committed</span> <span class="pre">to</span> <span class="pre">the\\nresults</span> <span class="pre">below</span> <span class="pre">(it</span> <span class="pre">abstained</span> <span class="pre">if</span> <span class="pre">this</span> <span class="pre">list</span> <span class="pre">is</span> <span class="pre">empty):\\n\\n{results}\\n\\nDecide</span> <span class="pre">whether</span> <span class="pre">these</span> <span class="pre">results</span> <span class="pre">are</span> <span class="pre">SUFFICIENT</span> <span class="pre">to</span> <span class="pre">satisfy</span> <span class="pre">the</span> <span class="pre">goal.\\n-</span> <span class="pre">If</span> <span class="pre">they</span> <span class="pre">are,</span> <span class="pre">reply</span> <span class="pre">with</span> <span class="pre">exactly:</span> <span class="pre">SUFFICIENT\\n-</span> <span class="pre">If</span> <span class="pre">they</span> <span class="pre">are</span> <span class="pre">not,</span> <span class="pre">reply</span> <span class="pre">with:</span> <span class="pre">INSUFFICIENT\\n</span>&#160; <span class="pre">then,</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">next</span> <span class="pre">line,</span> <span class="pre">a</span> <span class="pre">single</span> <span class="pre">improved</span> <span class="pre">search</span> <span class="pre">query</span> <span class="pre">that</span> <span class="pre">would</span> <span class="pre">retrieve</span> <span class="pre">what\\n</span>&#160; <span class="pre">is</span> <span class="pre">still</span> <span class="pre">missing.</span> <span class="pre">Keep</span> <span class="pre">it</span> <span class="pre">a</span> <span class="pre">terse</span> <span class="pre">search</span> <span class="pre">phrase</span> <span class="pre">—</span> <span class="pre">no</span> <span class="pre">prose,</span> <span class="pre">no</span> <span class="pre">numbering.\\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_result_chars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">prompt_function_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/llm.html#make_llm_evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.make_llm_evaluator" title="Link to this definition">#</a></dt>
+<dd><p>An LLM-backed raglab <a class="reference internal" href="raglab.agent.html#raglab.agent.Evaluator" title="raglab.agent.Evaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code></a> (turns on the back-edge).</p>
+<p>Relevance is ir’s: each round the accumulated results are passed through
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code> and the committed subset becomes the <code class="docutils literal notranslate"><span class="pre">Judgement.relevant</span></code>
+(so the LLM stays in its lane — LLM relevance is known-fragile, ir_01 §3).
+Sufficiency is the LLM’s: it reads the committed subset (informed by ir’s
+model-free <code class="xref py py-attr docutils literal notranslate"><span class="pre">sufficient</span></code> hint via abstention) and decides
+whether the goal is satisfied. When it is not, the judge’s improved query
+becomes a <code class="docutils literal notranslate"><span class="pre">refinement</span></code> <a class="reference internal" href="raglab.agent.html#raglab.agent.SubTask" title="raglab.agent.SubTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubTask</span></code></a> over the same sources
+— the <strong>back-edge</strong>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>judge</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/constants.html#Ellipsis" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – an injectable <code class="docutils literal notranslate"><span class="pre">(goal,</span> <span class="pre">results)</span> <span class="pre">-&gt;</span> <span class="pre">(sufficient,</span> <span class="pre">refinement)</span></code>
+callable (a test double, or your own router); a raw text reply is also
+accepted and parsed. When omitted it is built lazily on <code class="xref py py-mod docutils literal notranslate"><span class="pre">oa</span></code>.</p></li>
+<li><p><strong>select_strategy</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – ir selection strategy for the relevance decision
+(default <code class="docutils literal notranslate"><span class="pre">&quot;conservative&quot;</span></code> — distractor-robust).</p></li>
+<li><p><strong>select_kwargs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – extra args forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.select()</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">max_k</span></code>, <code class="docutils literal notranslate"><span class="pre">rel</span></code>). <code class="docutils literal notranslate"><span class="pre">min_score</span></code> is allowed only while the
+round’s pool keeps raw scores (single-source, or
+<code class="docutils literal notranslate"><span class="pre">prerank=score_reranker</span></code>): an absolute floor is per-(corpus,
+mode, embedder), so a round whose pool was rank-fused across
+sources <strong>raises</strong> rather than silently mass-abstaining on
+ordinal RRF scores.</p></li>
+<li><p><strong>prerank</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Reranker" title="raglab.agent.Reranker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reranker</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – the per-round merge that puts the accumulated pool best-first
+(and deduped) before <code class="docutils literal notranslate"><span class="pre">ir.select</span></code>. Defaults to
+<a class="reference internal" href="raglab.agent.html#raglab.agent.rrf_reranker" title="raglab.agent.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a> — a round’s pool can already mix
+sources (a SubTask spans several), so the same rank-based,
+scale-safe merge as the fan-in applies; single-source rounds keep
+raw scores. Inject <a class="reference internal" href="raglab.agent.html#raglab.agent.score_reranker" title="raglab.agent.score_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">score_reranker()</span></code></a> for
+sources known to share one score scale.</p></li>
+<li><p><strong>max_result_chars</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – per-result text truncation in the judge prompt.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Evaluator" title="raglab.agent.Evaluator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Evaluator</span></code></a></span></p>
+</dd>
+</dl>
+<p>Safe fallback: any judge error returns <code class="docutils literal notranslate"><span class="pre">refinement=None</span></code> — the control
+loop’s break condition — so a failing judge can never fabricate an endless
+loop. Sufficiency without a refinement query is likewise treated as a stop.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.make_llm_formulator">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">make_llm_formulator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">make_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/llm.html#make_llm_formulator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.make_llm_formulator" title="Link to this definition">#</a></dt>
+<dd><p>An LLM-backed raglab <a class="reference internal" href="raglab.agent.html#raglab.agent.Formulator" title="raglab.agent.Formulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Formulator</span></code></a>.</p>
+<p>Adapts an ir-style query formulator (<code class="docutils literal notranslate"><span class="pre">str</span> <span class="pre">-&gt;</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">[str]</span></code>) to the role
+contract <code class="docutils literal notranslate"><span class="pre">(SubTask,</span> <span class="pre">source)</span> <span class="pre">-&gt;</span> <span class="pre">[LowLevelQuery]</span></code>: the sub-goal text is
+rewritten / expanded into one or more search queries, each wrapped as a
+<a class="reference internal" href="raglab.agent.html#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a> against <code class="docutils literal notranslate"><span class="pre">source</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>formulate</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]]</span>) – an injectable ir-style formulator (a test double, or one you
+built). When omitted it is built once via
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.make_llm_formulator()</span></code> (<code class="docutils literal notranslate"><span class="pre">**make_kwargs</span></code> are forwarded —
+e.g. <code class="docutils literal notranslate"><span class="pre">n</span></code>, <code class="docutils literal notranslate"><span class="pre">prompt</span></code>, <code class="docutils literal notranslate"><span class="pre">rewriter</span></code>); that call is offline (<code class="docutils literal notranslate"><span class="pre">oa</span></code> is
+imported lazily only when the formulator is <em>invoked</em>), so
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">raglab</span></code> stays offline.</p></li>
+<li><p><strong>params</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – per-call retriever overrides (e.g. <code class="docutils literal notranslate"><span class="pre">{&quot;mode&quot;:</span> <span class="pre">&quot;hybrid&quot;,</span> <span class="pre">&quot;k&quot;:</span> <span class="pre">5}</span></code>)
+attached to every emitted <a class="reference internal" href="raglab.agent.html#raglab.agent.LowLevelQuery" title="raglab.agent.LowLevelQuery"><code class="xref py py-class docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Formulator" title="raglab.agent.Formulator"><code class="xref py py-class docutils literal notranslate"><span class="pre">Formulator</span></code></a></span></p>
+</dd>
+</dl>
+<p>The boundary: this returns <strong>queries, never SubTasks</strong>. ir’s formulator
+already falls back to identity on any failure, so the emitted list is never
+empty — a formulator must never make retrieval worse than the raw sub-goal.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.make_rrf_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">make_rrf_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rrf_k</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#make_rrf_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.make_rrf_reranker" title="Link to this definition">#</a></dt>
+<dd><p>A parametrized <a class="reference internal" href="#raglab.rrf_reranker" title="raglab.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a> (per-source trust weights, <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rrf_k</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – the RRF rank constant (standard default 60).</p></li>
+<li><p><strong>weights</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mapping</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – optional per-source trust dial, by source name (default 1.0
+each) — biases the merge without ever comparing raw scores.</p></li>
+<li><p><strong>identity</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span>) – opt-in cross-source duplicate detection (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;pointer&quot;</span></code>)
+— see <code class="xref py py-data docutils literal notranslate"><span class="pre">ir.retrieve.Identity</span></code>. Default: never merge across
+sources.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Reranker" title="raglab.agent.Reranker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reranker</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.make_search_agent">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">make_search_agent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sources</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">planner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formulator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaluator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reranker</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">budget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_cap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#make_search_agent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.make_search_agent" title="Link to this definition">#</a></dt>
+<dd><p>Build a <a class="reference internal" href="#raglab.SingleContextAgent" title="raglab.SingleContextAgent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a> over <em>sources</em> with smart defaults.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sources</span></code> is a <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code> — e.g.
+<code class="docutils literal notranslate"><span class="pre">{&quot;skills&quot;:</span> <span class="pre">ir.as_retriever(&quot;skills&quot;)}</span></code>, <a class="reference internal" href="#raglab.ir_sources" title="raglab.ir_sources"><code class="xref py py-func docutils literal notranslate"><span class="pre">ir_sources()</span></code></a>, or the lazy
+<code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> view. Every role defaults to its no-LLM thin-slice
+implementation, so <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code> just works;
+inject an LLM <code class="docutils literal notranslate"><span class="pre">formulator</span></code> / <code class="docutils literal notranslate"><span class="pre">evaluator</span></code> to turn on rewriting and the
+back-edge.</p>
+<p>A custom <code class="docutils literal notranslate"><span class="pre">Retriever</span></code> must return <code class="xref py py-class docutils literal notranslate"><span class="pre">ir.SearchHit</span></code> instances (the
+<code class="docutils literal notranslate"><span class="pre">Result</span></code> alias): the loop stamps provenance (<code class="docutils literal notranslate"><span class="pre">hit.source</span></code>) on its
+output, so duck-typed hit objects raise at the tagging step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.SingleContextAgent" title="raglab.agent.SingleContextAgent"><code class="xref py py-class docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.passthrough_evaluator">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">passthrough_evaluator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#passthrough_evaluator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.passthrough_evaluator" title="Link to this definition">#</a></dt>
+<dd><p>Pass-through critic: keep everything, declare sufficient, never re-query.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="raglab.agent.html#raglab.agent.Judgement" title="raglab.agent.Judgement"><code class="xref py py-class docutils literal notranslate"><span class="pre">Judgement</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.rank_fair_cap">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">rank_fair_cap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#rank_fair_cap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.rank_fair_cap" title="Link to this definition">#</a></dt>
+<dd><p>Keep at most <code class="docutils literal notranslate"><span class="pre">limit</span></code> hits, taking the best of each source in turn (the default).</p>
+<p>Groups the pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> (in first-arrival order; untagged hits are one
+group), collapses each group to one hit per artifact (its best surface, as
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> does), orders the group best-first by its own raw
+score – sound, since one source is one score scale – and deals hits round-robin
+across the groups. So a late source’s strong hits are never cut before the evaluator
+sees them, a duplicate never takes a slot, and no score ever crosses a source
+boundary or is rewritten (unlike pre-ranking with the RRF reranker, whose fused
+ordinal scores must never re-enter the pool). The output is in that dealt order
+whatever the pool’s size. A missing or NaN score sorts last in its source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.rrf_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">rrf_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#rrf_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.rrf_reranker" title="Link to this definition">#</a></dt>
+<dd><p>Cross-source merge (the default fan-in): fuse by rank, never by raw score.</p>
+<p>Groups the accumulated pool by <code class="docutils literal notranslate"><span class="pre">hit.source</span></code> and delegates the merge to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">ir.fuse_hits()</span></code> (ir is the SSOT for hit operations): within each
+source raw scores order and dedup that source’s hits — one scale, sound —
+and across sources only <strong>ranks</strong> interact (Reciprocal Rank Fusion), so
+heterogeneous embedders / modes can never mis-order the merge, and
+colliding <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>s from different sources stay distinct results
+(identity is <code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>).</p>
+<p>A single-source pool (or an untagged one — hits with no <code class="docutils literal notranslate"><span class="pre">source</span></code>) keeps
+its raw scores and exactly <a class="reference internal" href="#raglab.score_reranker" title="raglab.score_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">score_reranker()</span></code></a>’s ordering; fused,
+rank-derived scores only appear when there is genuinely something to fuse.
+Each fused hit keeps its pre-fusion magnitude as
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;source_score&quot;]</span></code>. For per-source weights, another <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>,
+or opt-in cross-source duplicate merging, use <a class="reference internal" href="#raglab.make_rrf_reranker" title="raglab.make_rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.score_reranker">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">score_reranker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#score_reranker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.score_reranker" title="Link to this definition">#</a></dt>
+<dd><p>Magnitude merge: one surface per artifact, ordered by descending raw score.</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">ir.base.best_per_artifact()</span></code> (ir is the SSOT for hit
+operations): an artifact retrieved by several queries / rounds — common once
+the back-edge re-queries — survives once, at its highest score. Identity is
+<code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>, so two sources’ same-id artifacts never collapse.</p>
+<p>A plain score sort compares raw scores <strong>across</strong> sources, which is only
+sound when every source shares one score scale (same embedder + mode) — it
+is the explicit homogeneous-sources opt-in. The default fan-in is
+<a class="reference internal" href="#raglab.rrf_reranker" title="raglab.rrf_reranker"><code class="xref py py-func docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a>, which never compares raw scores across sources.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">SearchHit</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="raglab.single_subtask_planner">
+<span class="sig-prename descclassname"><span class="pre">raglab.</span></span><span class="sig-name descname"><span class="pre">single_subtask_planner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/raglab/agent.html#single_subtask_planner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#raglab.single_subtask_planner" title="Link to this definition">#</a></dt>
+<dd><p>Trivial planner: one sub-task over <em>all</em> registered sources, no decomposition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="raglab.agent.html#raglab.agent.SubTask" title="raglab.agent.SubTask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubTask</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Modules</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="raglab.agent.html#module-raglab.agent" title="raglab.agent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">agent</span></code></a></p></td>
+<td><p>The Composable Search Agent — roles wired by a control loop (ir_09).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="raglab.llm.html#module-raglab.llm" title="raglab.llm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">llm</span></code></a></p></td>
+<td><p>LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../api.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">API reference</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="raglab.agent.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">raglab.agent</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Budget"><code class="docutils literal notranslate"><span class="pre">Budget</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Citer"><code class="docutils literal notranslate"><span class="pre">Citer</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Evaluator"><code class="docutils literal notranslate"><span class="pre">Evaluator</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Formulator"><code class="docutils literal notranslate"><span class="pre">Formulator</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Judgement"><code class="docutils literal notranslate"><span class="pre">Judgement</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.LowLevelQuery"><code class="docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Planner"><code class="docutils literal notranslate"><span class="pre">Planner</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.PoolCap"><code class="docutils literal notranslate"><span class="pre">PoolCap</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Query"><code class="docutils literal notranslate"><span class="pre">Query</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.Result"><code class="docutils literal notranslate"><span class="pre">Result</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.citer"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.citer()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.evaluator"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.evaluator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.formulator"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.formulator()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.planner"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.planner()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.pool_cap"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.pool_cap()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SingleContextAgent.reranker"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent.reranker()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.SubTask"><code class="docutils literal notranslate"><span class="pre">SubTask</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.arrival_order_cap"><code class="docutils literal notranslate"><span class="pre">arrival_order_cap()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.identity_citer"><code class="docutils literal notranslate"><span class="pre">identity_citer()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.identity_formulator"><code class="docutils literal notranslate"><span class="pre">identity_formulator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.ir_sources"><code class="docutils literal notranslate"><span class="pre">ir_sources()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.make_llm_evaluator"><code class="docutils literal notranslate"><span class="pre">make_llm_evaluator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.make_llm_formulator"><code class="docutils literal notranslate"><span class="pre">make_llm_formulator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.make_rrf_reranker"><code class="docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.make_search_agent"><code class="docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.passthrough_evaluator"><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.rank_fair_cap"><code class="docutils literal notranslate"><span class="pre">rank_fair_cap()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.rrf_reranker"><code class="docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.score_reranker"><code class="docutils literal notranslate"><span class="pre">score_reranker()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#raglab.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/raglab.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+# raglab
+
+> A medley of tools to make RAG-based applications.
+
+
+## Pages in this subsection
+
+- [raglab](raglab.html.md): &#96;raglab&#96; — the agentic-search / RAG orchestration layer on top of &#96;ir&#96;.
+- [raglab.agent](raglab.agent.html.md): The Composable Search Agent — roles wired by a control loop (ir_09).
+- [raglab.llm](raglab.llm.html.md): LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

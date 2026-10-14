@@ -1,185 +1,759 @@
-
-
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" data-content_root="./">
-<head>
-  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to raglab’s documentation! &mdash; raglab 0.2.5 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
 
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="index.html.md">
+<link rel="describedby" href="llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="index.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>raglab &#8212; raglab</title>
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=cb850272"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
-      <script src="_static/toggleprompt.js?v=d7ede5d2"></script>
-      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-      <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/js/theme.js"></script>
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/epythet.css?v=05df9aa6" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=18bd87630a240e9c25be"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
+
+    <script src="_static/documentation_options.js?v=fc7d8818"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="raglab" href="module_docs/raglab.html" /> 
-</head>
+    <link rel="next" title="API reference" href="api.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.6" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
 
-<body class="wy-body-for-nav"> 
-  <div class="wy-grid-for-nav">
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-      <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
 
-          
-          
-          <a href="#" class="icon icon-home">
-            raglab
-          </a>
-<div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab.html">raglab</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab/agent.html">raglab.agent</a></li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab/llm.html">raglab.llm</a></li>
-</ul>
 
-        </div>
-      </div>
-    </nav>
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
-          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">raglab</a>
-      </nav>
+  
+    
+  
 
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
-  <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Welcome to raglab’s documentation!</li>
-      <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
-      </li>
+<a class="navbar-brand logo" href="#">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">raglab</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
   </ul>
-  <hr/>
-</div>
-          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-           <div itemprop="articleBody">
-             
-  <section id="welcome-to-raglab-s-documentation">
-<h1>Welcome to raglab’s documentation!<a class="headerlink" href="#welcome-to-raglab-s-documentation" title="Link to this heading"></a></h1>
-<div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab.html">raglab</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Budget"><code class="docutils literal notranslate"><span class="pre">Budget</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Citer"><code class="docutils literal notranslate"><span class="pre">Citer</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Evaluator"><code class="docutils literal notranslate"><span class="pre">Evaluator</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Formulator"><code class="docutils literal notranslate"><span class="pre">Formulator</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Judgement"><code class="docutils literal notranslate"><span class="pre">Judgement</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.LowLevelQuery"><code class="docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Planner"><code class="docutils literal notranslate"><span class="pre">Planner</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Query"><code class="docutils literal notranslate"><span class="pre">Query</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.Result"><code class="docutils literal notranslate"><span class="pre">Result</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.SingleContextAgent"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.SubTask"><code class="docutils literal notranslate"><span class="pre">SubTask</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.identity_citer"><code class="docutils literal notranslate"><span class="pre">identity_citer()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.identity_formulator"><code class="docutils literal notranslate"><span class="pre">identity_formulator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.ir_sources"><code class="docutils literal notranslate"><span class="pre">ir_sources()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.make_llm_evaluator"><code class="docutils literal notranslate"><span class="pre">make_llm_evaluator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.make_llm_formulator"><code class="docutils literal notranslate"><span class="pre">make_llm_formulator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.make_rrf_reranker"><code class="docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.make_search_agent"><code class="docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.passthrough_evaluator"><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.rrf_reranker"><code class="docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.score_reranker"><code class="docutils literal notranslate"><span class="pre">score_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab.html#raglab.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab/agent.html">raglab.agent</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Budget"><code class="docutils literal notranslate"><span class="pre">Budget</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Citer"><code class="docutils literal notranslate"><span class="pre">Citer</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Evaluator"><code class="docutils literal notranslate"><span class="pre">Evaluator</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Formulator"><code class="docutils literal notranslate"><span class="pre">Formulator</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Judgement"><code class="docutils literal notranslate"><span class="pre">Judgement</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.LowLevelQuery"><code class="docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Planner"><code class="docutils literal notranslate"><span class="pre">Planner</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Query"><code class="docutils literal notranslate"><span class="pre">Query</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Reranker"><code class="docutils literal notranslate"><span class="pre">Reranker</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.Result"><code class="docutils literal notranslate"><span class="pre">Result</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.SingleContextAgent"><code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.SubTask"><code class="docutils literal notranslate"><span class="pre">SubTask</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.identity_citer"><code class="docutils literal notranslate"><span class="pre">identity_citer()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.identity_formulator"><code class="docutils literal notranslate"><span class="pre">identity_formulator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.ir_sources"><code class="docutils literal notranslate"><span class="pre">ir_sources()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.make_rrf_reranker"><code class="docutils literal notranslate"><span class="pre">make_rrf_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.make_search_agent"><code class="docutils literal notranslate"><span class="pre">make_search_agent()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.passthrough_evaluator"><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.rrf_reranker"><code class="docutils literal notranslate"><span class="pre">rrf_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.score_reranker"><code class="docutils literal notranslate"><span class="pre">score_reranker()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/agent.html#raglab.agent.single_subtask_planner"><code class="docutils literal notranslate"><span class="pre">single_subtask_planner()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="module_docs/raglab/llm.html">raglab.llm</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/llm.html#raglab.llm.EVALUATION_PROMPT"><code class="docutils literal notranslate"><span class="pre">EVALUATION_PROMPT</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/llm.html#raglab.llm.make_llm_evaluator"><code class="docutils literal notranslate"><span class="pre">make_llm_evaluator()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="module_docs/raglab/llm.html#raglab.llm.make_llm_formulator"><code class="docutils literal notranslate"><span class="pre">make_llm_formulator()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</div>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
-<p>Release: 0.2.5</p>
-<p>Last change: Jun 21, 2026</p>
-</section>
-
-
-           </div>
-          </div>
-          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="module_docs/raglab.html" class="btn btn-neutral float-right" title="raglab" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+</nav></div>
+      
     </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
 
-  <hr/>
-
-  <div role="contentinfo">
-    <p></p>
-  </div>
-
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
-
-</footer>
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
         </div>
-      </div>
-    </section>
-  </div>
-  <script>
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script> 
+      
+      
+        <div class="navbar-item">
 
-</body>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/raglab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/raglab" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!-- generated by epythet -->
+<section id="raglab">
+<h1>raglab<a class="headerlink" href="#raglab" title="Link to this heading">#</a></h1>
+<p>The <strong>agentic-search / RAG orchestration layer on top of <a class="reference external" href="https://github.com/i2mint/ir"><code class="docutils literal notranslate"><span class="pre">ir</span></code></a></strong> (the retrieval substrate).</p>
+<p><code class="docutils literal notranslate"><span class="pre">raglab</span></code> turns a retrieval substrate into a <strong>Composable Search Agent</strong>: a small
+set of injected <strong>roles</strong> — Planner, Formulator, Retriever, Evaluator, Reranker,
+Citer — wired by a control loop. The loop’s defining feature is the <strong>back-edge</strong>
+(<em>evaluator → reformulate</em>): when results aren’t good enough, the agent rewrites
+the query and searches again. That back-edge is what makes it an <em>agent</em> rather
+than a fixed pipeline (DAG).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>raglab
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>Fresh start (v0.2.0+).</strong> This repo took over the <code class="docutils literal notranslate"><span class="pre">raglab</span></code> PyPI name. The
+earlier backend (PyPI 0.0.x–0.1.x) was renamed and now lives at
+<a class="reference external" href="https://github.com/addaix/raglab_bak">addaix/raglab_bak</a> (PyPI:
+<a class="reference external" href="https://pypi.org/project/raglab_bak/"><code class="docutils literal notranslate"><span class="pre">raglab_bak</span></code></a>). The API below is the new
+agent layer.</p>
+</div></blockquote>
+<hr class="docutils" />
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading">#</a></h2>
+<p>The default agent runs <strong>fully offline</strong> — no LLM, no network. Point it at one or
+more <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpora and call it like a function; you get back ranked
+<a class="reference external" href="https://github.com/i2mint/ir"><code class="docutils literal notranslate"><span class="pre">ir.SearchHit</span></code></a>s.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">raglab</span>
+
+<span class="c1"># Register named ir corpora as the agent's sources, then search across them.</span>
+<span class="n">sources</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">ir_sources</span><span class="p">(</span><span class="s2">"skills"</span><span class="p">,</span> <span class="s2">"reports"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"hybrid"</span><span class="p">)</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>     <span class="c1"># -&gt; list[ir.SearchHit], ranked</span>
+</pre></div>
+</div>
+<p>A self-contained, runnable example (build a tiny corpus, search it):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ir</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ir.store</span><span class="w"> </span><span class="kn">import</span> <span class="n">CorpusStore</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">raglab</span>
+
+<span class="n">docs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"deploy"</span><span class="p">:</span> <span class="s2">"deploy the app to the server with systemd units"</span><span class="p">,</span>
+    <span class="s2">"embed"</span><span class="p">:</span>  <span class="s2">"embed text with a model and cache the vectors"</span><span class="p">,</span>
+    <span class="s2">"search"</span><span class="p">:</span> <span class="s2">"vector similarity search with metadata filters"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">corpus</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
+    <span class="n">ir</span><span class="o">.</span><span class="n">CorpusSource</span><span class="o">.</span><span class="n">from_mapping</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">ir</span><span class="o">.</span><span class="n">WholeText</span><span class="p">()),</span>
+    <span class="n">store</span><span class="o">=</span><span class="n">CorpusStore</span><span class="o">.</span><span class="n">memory</span><span class="p">(),</span>
+    <span class="n">embedder</span><span class="o">=</span><span class="s2">"light"</span><span class="p">,</span>          <span class="c1"># numpy-only, no model download</span>
+<span class="p">)</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">({</span><span class="s2">"t"</span><span class="p">:</span> <span class="n">ir</span><span class="o">.</span><span class="n">as_retriever</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)})</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"deploy the app to the server"</span><span class="p">)</span>
+<span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">artifact_id</span>        <span class="c1"># -&gt; "deploy"</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">sources</span></code> is any <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code>. Build it with
+<a class="reference internal" href="#sources"><span class="xref myst"><code class="docutils literal notranslate"><span class="pre">raglab.ir_sources(*names,</span> <span class="pre">**defaults)</span></code></span></a>, with <code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> (a
+lazy live view over everything ir has registered), or by hand:
+<code class="docutils literal notranslate"><span class="pre">{&quot;skills&quot;:</span> <span class="pre">ir.as_retriever(&quot;skills&quot;)}</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="the-mental-model">
+<h2>The mental model<a class="headerlink" href="#the-mental-model" title="Link to this heading">#</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>           ┌─────────── back-edge (re-query when insufficient) ──────────┐
+           ▼                                                             │
+  Query → Planner → [SubTask] → Formulator → [LowLevelQuery] → Retriever(s)
+                                                                   │
+                                          accumulated hits ◄───────┘
+                                                   │
+                                            Evaluator ──► Judgement(relevant, sufficient, refinement)
+                                                   │              └─ refinement ⟲ back-edge
+                                          (sufficient / budget hit)
+                                                   ▼
+                                       Reranker (fan-in) → Citer → ranked results
+</pre></div>
+</div>
+<p>The <strong>loop is fixed</strong>; every <em>decision</em> in it is an injected <strong>role</strong> (a plain
+callable satisfying a <code class="docutils literal notranslate"><span class="pre">Protocol</span></code>). v1 ships every role with a sensible default,
+so the simple path — <code class="docutils literal notranslate"><span class="pre">make_search_agent(sources)(&quot;query&quot;)</span></code> — just works. You turn
+capabilities on by swapping in richer roles.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Decides</p></th>
+<th class="head"><p>Default (no-LLM)</p></th>
+<th class="head"><p>Inject an LLM version to…</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Planner</strong></p></td>
+<td><p>decompose query → sub-tasks, pick sources</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">single_subtask_planner</span></code> (one task, all sources)</p></td>
+<td><p>split a query into parallel sub-goals</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Formulator</strong></p></td>
+<td><p>sub-task → concrete search queries</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">identity_formulator</span></code> (verbatim)</p></td>
+<td><p>rewrite / expand / HyDE (<code class="docutils literal notranslate"><span class="pre">make_llm_formulator</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Retriever</strong></p></td>
+<td><p>run one query against one source</p></td>
+<td><p><em>injected at the leaf</em> (<code class="docutils literal notranslate"><span class="pre">ir.as_retriever</span></code>)</p></td>
+<td><p>add web / SQL / graph backends</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Evaluator</strong></p></td>
+<td><p>relevance + sufficiency + <strong>back-edge</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">passthrough_evaluator</span></code> (keep all, stop)</p></td>
+<td><p>judge sufficiency &amp; re-query (<code class="docutils literal notranslate"><span class="pre">make_llm_evaluator</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Reranker</strong></p></td>
+<td><p>final cross-source ordering (fan-in)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rrf_reranker</span></code> (rank fusion)</p></td>
+<td><p>weight sources, change fusion</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Citer</strong></p></td>
+<td><p>confirm each result supports its use</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">identity_citer</span></code> (no-op)</p></td>
+<td><p><em>(generation/verification lives in <code class="docutils literal notranslate"><span class="pre">srag</span></code>)</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong><code class="docutils literal notranslate"><span class="pre">Budget</span></code></strong> bounds the loop (<code class="docutils literal notranslate"><span class="pre">max_rounds</span></code>, <code class="docutils literal notranslate"><span class="pre">max_sources_per_task</span></code>,
+<code class="docutils literal notranslate"><span class="pre">max_results_per_task</span></code>) — the safety net under the (harder) sufficiency decision.</p>
+</section>
+<hr class="docutils" />
+<section id="turning-on-query-understanding-and-the-back-edge">
+<h2>Turning on query understanding and the back-edge<a class="headerlink" href="#turning-on-query-understanding-and-the-back-edge" title="Link to this heading">#</a></h2>
+<p>Inject the two LLM roles to upgrade the offline slice into a real agent. Both
+build their model lazily on <a class="reference external" href="https://github.com/thorwhalen/oa"><code class="docutils literal notranslate"><span class="pre">oa</span></code></a> <strong>only when
+invoked</strong>, so <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">raglab</span></code> stays offline.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">raglab</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span>
+    <span class="n">sources</span><span class="p">,</span>
+    <span class="n">formulator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_formulator</span><span class="p">(),</span>   <span class="c1"># rewrite/expand the query (HyDE)</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_evaluator</span><span class="p">(),</span>      <span class="c1"># sufficiency + the back-edge</span>
+<span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>How the Evaluator splits the decision (a load-bearing boundary):</p>
+<ul class="simple">
+<li><p><strong>Relevance is <code class="docutils literal notranslate"><span class="pre">ir</span></code>’s.</strong> Each round the accumulated hits pass through
+<code class="docutils literal notranslate"><span class="pre">ir.select</span></code> (default strategy <code class="docutils literal notranslate"><span class="pre">&quot;conservative&quot;</span></code> — distractor-robust); the
+committed subset becomes <code class="docutils literal notranslate"><span class="pre">Judgement.relevant</span></code>. LLM relevance scoring is
+known-fragile, so the LLM stays out of it.</p></li>
+<li><p><strong>Sufficiency is the LLM’s.</strong> Informed by ir’s model-free
+<code class="docutils literal notranslate"><span class="pre">Selection.sufficient</span></code> hint, the judge decides whether the committed subset
+actually satisfies the goal. If not, it emits an improved query — a
+<code class="docutils literal notranslate"><span class="pre">refinement</span></code> <code class="docutils literal notranslate"><span class="pre">SubTask</span></code> over the same sources. <strong>That refinement is the
+back-edge.</strong></p></li>
+</ul>
+<p>Both builders accept an injectable double (<code class="docutils literal notranslate"><span class="pre">formulate=</span></code> / <code class="docutils literal notranslate"><span class="pre">judge=</span></code>) for
+deterministic tests, and both <strong>fail safe</strong>: a formulator error falls back to the
+raw query (never makes retrieval worse); a judge error returns no refinement
+(the loop’s break condition — a failing judge can never spin forever).</p>
+</section>
+<hr class="docutils" />
+<section id="multi-source-search-and-the-fan-in-reranker">
+<h2>Multi-source search and the fan-in reranker<a class="headerlink" href="#multi-source-search-and-the-fan-in-reranker" title="Link to this heading">#</a></h2>
+<p>The agent is <strong>multi-source by default</strong>. The loop stamps each hit’s provenance
+(<code class="docutils literal notranslate"><span class="pre">hit.source</span></code>), and the default fan-in reranker, <code class="docutils literal notranslate"><span class="pre">rrf_reranker</span></code>, merges
+heterogeneous sources <strong>by rank, never by raw score</strong>.</p>
+<p>This matters because scores from different corpora / embedders / retrieval modes
+are <em>incommensurable</em> — a cosine score (~0–1) and a BM25 score (~0–50) cannot be
+compared directly. Reciprocal Rank Fusion (RRF) sidesteps this: within one source
+raw scores order and dedup that source’s hits (one scale, sound); across sources
+only <strong>ranks</strong> interact.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Two sources on different score scales:</span>
+<span class="c1">#   rrf_reranker (default): interleaves both sources' rank-1 hits first.</span>
+<span class="c1">#   score_reranker (opt-in): a raw-score sort — only sound when every source</span>
+<span class="c1">#                            shares one scale (same embedder + mode).</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">reranker</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">score_reranker</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Colliding <code class="docutils literal notranslate"><span class="pre">artifact_id</span></code>s from different sources stay distinct (identity is
+<code class="docutils literal notranslate"><span class="pre">(source,</span> <span class="pre">artifact_id)</span></code>). Each fused hit keeps its pre-fusion magnitude in
+<code class="docutils literal notranslate"><span class="pre">metadata[&quot;source_score&quot;]</span></code>. For per-source trust weights or a custom <code class="docutils literal notranslate"><span class="pre">rrf_k</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reranker</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_rrf_reranker</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="p">{</span><span class="s2">"skills"</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span> <span class="s2">"web"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span> <span class="n">rrf_k</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+<span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">reranker</span><span class="o">=</span><span class="n">reranker</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="customizing-roles">
+<h2>Customizing roles<a class="headerlink" href="#customizing-roles" title="Link to this heading">#</a></h2>
+<p>Every role is just a callable matching a <code class="docutils literal notranslate"><span class="pre">Protocol</span></code>, so you can inject your own:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">raglab</span><span class="w"> </span><span class="kn">import</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">LowLevelQuery</span><span class="p">,</span> <span class="n">Judgement</span><span class="p">,</span> <span class="n">make_search_agent</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_planner</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">sources</span><span class="p">):</span>
+    <span class="c1"># split into two sub-goals over all sources</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">SubTask</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">g</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sources</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">" examples"</span><span class="p">)]</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_formulator</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"k"</span><span class="p">:</span> <span class="mi">10</span><span class="p">})]</span>
+
+<span class="n">agent</span> <span class="o">=</span> <span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">planner</span><span class="o">=</span><span class="n">my_planner</span><span class="p">,</span> <span class="n">formulator</span><span class="o">=</span><span class="n">my_formulator</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A <strong>custom Retriever</strong> is any <code class="docutils literal notranslate"><span class="pre">callable(query,</span> <span class="pre">**params)</span> <span class="pre">-&gt;</span> <span class="pre">Sequence[ir.SearchHit]</span></code>.
+It must return <code class="docutils literal notranslate"><span class="pre">ir.SearchHit</span></code> instances (the <code class="docutils literal notranslate"><span class="pre">Result</span></code> alias) — the loop stamps
+provenance on its output, so duck-typed hit objects raise at the tagging step.
+ir-backed retrievers self-attribute their corpus name.</p>
+</section>
+<hr class="docutils" />
+<section id="api-at-a-glance">
+<h2>API at a glance<a class="headerlink" href="#api-at-a-glance" title="Link to this heading">#</a></h2>
+<p>Everything is exported from the top-level <code class="docutils literal notranslate"><span class="pre">raglab</span></code> namespace.</p>
+<p><strong>Value types</strong> (frozen dataclasses, plain data):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Fields</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Query</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">constraints</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SubTask</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">goal</span></code>, <code class="docutils literal notranslate"><span class="pre">sources:</span> <span class="pre">tuple[str,</span> <span class="pre">...]</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">LowLevelQuery</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">source</span></code>, <code class="docutils literal notranslate"><span class="pre">query</span></code>, <code class="docutils literal notranslate"><span class="pre">params</span></code> (per-call retriever overrides)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Judgement</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">relevant</span></code>, <code class="docutils literal notranslate"><span class="pre">sufficient</span></code>, <code class="docutils literal notranslate"><span class="pre">refinement:</span> <span class="pre">SubTask</span> <span class="pre">|</span> <span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Budget</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max_rounds=3</span></code>, <code class="docutils literal notranslate"><span class="pre">max_sources_per_task=4</span></code>, <code class="docutils literal notranslate"><span class="pre">max_results_per_task=50</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Result</span></code></p></td>
+<td><p>alias for <code class="docutils literal notranslate"><span class="pre">ir.SearchHit</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Role Protocols</strong> (the open-closed strategy seams): <code class="docutils literal notranslate"><span class="pre">Planner</span></code>, <code class="docutils literal notranslate"><span class="pre">Formulator</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Retriever</span></code> (re-exported from <code class="docutils literal notranslate"><span class="pre">ir</span></code>), <code class="docutils literal notranslate"><span class="pre">Evaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">Reranker</span></code>, <code class="docutils literal notranslate"><span class="pre">Citer</span></code>.</p>
+<p><strong>Orchestrator &amp; builders:</strong></p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">make_search_agent(sources,</span> <span class="pre">*,</span> <span class="pre">planner,</span> <span class="pre">formulator,</span> <span class="pre">evaluator,</span> <span class="pre">reranker,</span> <span class="pre">citer,</span> <span class="pre">budget)</span></code></p></td>
+<td><p>Build a <code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code> with smart defaults for every role.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code></p></td>
+<td><p>The orchestrator dataclass: one ReAct-style loop, sequential sub-tasks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a name="sources"></a><code class="docutils literal notranslate"><span class="pre">ir_sources(*names,</span> <span class="pre">**search_defaults)</span></code></p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">Retriever}</span></code> registry backed by named ir corpora.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Default roles (the no-LLM thin slice):</strong> <code class="docutils literal notranslate"><span class="pre">single_subtask_planner</span></code>,
+<code class="docutils literal notranslate"><span class="pre">identity_formulator</span></code>, <code class="docutils literal notranslate"><span class="pre">passthrough_evaluator</span></code>, <code class="docutils literal notranslate"><span class="pre">score_reranker</span></code>, <code class="docutils literal notranslate"><span class="pre">rrf_reranker</span></code>,
+<code class="docutils literal notranslate"><span class="pre">make_rrf_reranker(*,</span> <span class="pre">rrf_k,</span> <span class="pre">weights,</span> <span class="pre">identity)</span></code>, <code class="docutils literal notranslate"><span class="pre">identity_citer</span></code>.</p>
+<p><strong>LLM roles:</strong> <code class="docutils literal notranslate"><span class="pre">make_llm_formulator(*,</span> <span class="pre">formulate=None,</span> <span class="pre">params=None,</span> <span class="pre">**make_kwargs)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">make_llm_evaluator(*,</span> <span class="pre">judge=None,</span> <span class="pre">select_strategy=&quot;conservative&quot;,</span> <span class="pre">select_kwargs=None,</span> <span class="pre">prerank=None,</span> <span class="pre">prompt=EVALUATION_PROMPT,</span> <span class="pre">...)</span></code>,
+and the default <code class="docutils literal notranslate"><span class="pre">EVALUATION_PROMPT</span></code> string.</p>
+</section>
+<hr class="docutils" />
+<section id="architecture-boundaries">
+<h2>Architecture &amp; boundaries<a class="headerlink" href="#architecture-boundaries" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">raglab</span></code> <strong>owns the agent</strong>: the value types, the role Protocols, the control
+loop with the back-edge, the budget governor, the source registry, and the
+cross-source fan-in.</p>
+<p>It <strong>consumes from <code class="docutils literal notranslate"><span class="pre">ir</span></code></strong> (and does not reimplement): <code class="docutils literal notranslate"><span class="pre">ir.as_retriever</span></code> (corpus →
+Retriever), <code class="docutils literal notranslate"><span class="pre">ir.retrievers()</span></code> (the live registry view), <code class="docutils literal notranslate"><span class="pre">ir.make_llm_formulator</span></code>
+(the query rewriter), <code class="docutils literal notranslate"><span class="pre">ir.select</span></code> + its <code class="docutils literal notranslate"><span class="pre">Selection.sufficient</span></code> signal (relevance</p>
+<ul class="simple">
+<li><p>the sufficiency hint), and <code class="docutils literal notranslate"><span class="pre">ir.fuse_hits</span></code> (RRF). The <code class="docutils literal notranslate"><span class="pre">Result</span></code> type and the
+<code class="docutils literal notranslate"><span class="pre">Retriever</span></code> contract are <strong>ir’s</strong> (single source of truth).</p></li>
+</ul>
+<p><strong>Dependency direction is one-way:</strong> <code class="docutils literal notranslate"><span class="pre">raglab</span></code> imports <code class="docutils literal notranslate"><span class="pre">ir</span></code> (and <code class="docutils literal notranslate"><span class="pre">oa</span></code> for the LLM
+roles, lazily); <strong><code class="docutils literal notranslate"><span class="pre">ir</span></code> never imports <code class="docutils literal notranslate"><span class="pre">raglab</span></code>.</strong> Keeping <code class="docutils literal notranslate"><span class="pre">oa</span></code> opt-in is what lets
+<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">raglab</span></code> stay offline.</p>
+<p>What lives <strong>elsewhere:</strong> answer synthesis / generation and the
+Citer/Verifier (which needs a <em>generated claim</em> to verify) belong in the
+RAG/generation layer (<code class="docutils literal notranslate"><span class="pre">srag</span></code>), not the search agent. raglab’s deliverable is
+<strong>pointers + extractions</strong>, not an essay.</p>
+<p>Where it sits in the ecosystem: <strong><code class="docutils literal notranslate"><span class="pre">raglab</span></code> → <code class="docutils literal notranslate"><span class="pre">ir</span></code> → {<code class="docutils literal notranslate"><span class="pre">ef</span></code>, <code class="docutils literal notranslate"><span class="pre">vd</span></code>}</strong> — <code class="docutils literal notranslate"><span class="pre">ir</span></code> is the
+retrieval substrate, <code class="docutils literal notranslate"><span class="pre">ef</span></code> owns embedders/segmenters, <code class="docutils literal notranslate"><span class="pre">vd</span></code> is the vector-store
+facade.</p>
+</section>
+<hr class="docutils" />
+<section id="status-roadmap">
+<h2>Status &amp; roadmap<a class="headerlink" href="#status-roadmap" title="Link to this heading">#</a></h2>
+<p>Shipped at <strong>0.2.4</strong>: the <code class="docutils literal notranslate"><span class="pre">SingleContextAgent</span></code> control loop with the back-edge,
+all six role Protocols, the no-LLM defaults, the LLM Formulator + Evaluator, and
+the RRF cross-source fan-in reranker. The roles, value types, and loop are
+stable; richer strategies are added behind the same contracts.</p>
+<p>The living roadmap is <strong><a class="reference external" href="https://github.com/thorwhalen/raglab/issues/2">issue #2</a></strong>
+(Composable Search Agent on ir, the <em>ir_09</em> reference design). Not yet built:</p>
+<ul class="simple">
+<li><p><strong>Budget governor refinements</strong> — the per-task results cap currently truncates
+in arrival order rather than by rank
+(<a class="reference external" href="https://github.com/thorwhalen/raglab/issues/5">#5</a>); termination as a
+separately injected policy is planned.</p></li>
+<li><p><strong>PurposeStore</strong> — persistent, purpose-indexed memory overlay
+(<a class="reference external" href="https://github.com/thorwhalen/raglab/issues/6">#6</a>). There is no cross-run
+memory today.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">MultiAgentAgent</span></code></strong> — one subagent per sub-task/source (breadth-first, ~15×
+cost); promotion swaps only the orchestrator, keeping role contracts identical.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="house-style">
+<h2>House style<a class="headerlink" href="#house-style" title="Link to this heading">#</a></h2>
+<p>Functional over OOP; SOLID when OOP; facades, SSOT, dependency injection;
+progressive disclosure; keyword-only args beyond the third positional;
+<code class="docutils literal notranslate"><span class="pre">collections.abc</span></code> + frozen <code class="docutils literal notranslate"><span class="pre">dataclass</span></code>es; <code class="docutils literal notranslate"><span class="pre">Protocol</span></code>s for the role seams. Tests
+are hermetic (fake retrievers, injected LLM doubles) with a few end-to-end checks
+over a real <code class="docutils literal notranslate"><span class="pre">ir</span></code> corpus using the light, numpy-only embedder.</p>
+<p class="epythet-aggregates">This documentation as a single file: <a href="raglab.md">raglab.md</a> (Markdown, for agents).</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+</section>
+
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-14 07:23 UTC from <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b">090127f</a> (main) · raglab 0.2.6 · <a href="about-this-build.html">about this build</a></p>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="right-next"
+       href="api.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">API reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-start">Quick start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-mental-model">The mental model</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#turning-on-query-understanding-and-the-back-edge">Turning on query understanding and the back-edge</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#multi-source-search-and-the-fan-in-reranker">Multi-source search and the fan-in reranker</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#customizing-roles">Customizing roles</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-at-a-glance">API at a glance</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#architecture-boundaries">Architecture &amp; boundaries</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#status-roadmap">Status &amp; roadmap</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#house-style">House style</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/index.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.23.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
 </html>
