@@ -36,7 +36,7 @@ from collections.abc import Callable, Iterator, Mapping, MutableMapping, Sequenc
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
-from .agent import Memory, Result, RoundRecord
+from .agent import Result, RoundRecord
 
 Embedder = Callable[[str], Sequence[float]]
 
@@ -171,7 +171,7 @@ relevance_recency_reader = make_relevance_recency_reader()
 
 def _cosine(u: Sequence[float], v: Sequence[float]) -> float:
     norm = math.sqrt(sum(x * x for x in u)) * math.sqrt(sum(x * x for x in v))
-    return sum(x * y for x, y in zip(u, v)) / norm if norm else 0.0
+    return sum(x * y for x, y in zip(u, v, strict=True)) / norm if norm else 0.0
 
 
 @dataclass
