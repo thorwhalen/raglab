@@ -234,7 +234,10 @@ def make_graded_rubric_evaluator(
     filtering.
     """
     levels = tuple(levels)
-    for name, value in (("unsupported_cap", unsupported_cap), ("relevant_level", relevant_level)):
+    for name, value in (
+        ("unsupported_cap", unsupported_cap),
+        ("relevant_level", relevant_level),
+    ):
         if value not in levels:
             raise ValueError(f"{name}={value!r} is not one of {list(levels)}")
     keep = levels.index(relevant_level)
@@ -294,7 +297,9 @@ def make_graded_rubric_evaluator(
         }
         graded: dict[str, GradedLabel] = {}
         for (_, aid), label in labels.items():
-            if aid not in graded or levels.index(label.level) < levels.index(graded[aid].level):
+            if aid not in graded or levels.index(label.level) < levels.index(
+                graded[aid].level
+            ):
                 graded[aid] = label
         relevant = [
             h
