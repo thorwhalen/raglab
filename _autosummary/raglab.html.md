@@ -522,3 +522,4 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 |--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`judging`](raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
 | [`llm`](raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
+| [`recipes`](raglab.recipes.html.md#module-raglab.recipes) | Recipes: whole workflows composed from raglab's roles, ready to call.                     |

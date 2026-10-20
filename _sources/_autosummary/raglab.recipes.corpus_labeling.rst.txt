@@ -1,0 +1,19 @@
+raglab.recipes.corpus\_labeling
+===============================
+
+.. automodule:: raglab.recipes.corpus_labeling
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      label_corpus
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CorpusLabeling
+      FacetCoverage
+   

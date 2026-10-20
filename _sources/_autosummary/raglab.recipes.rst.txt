@@ -1,0 +1,26 @@
+raglab.recipes
+==============
+
+.. automodule:: raglab.recipes
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      label_corpus
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CorpusLabeling
+      FacetCoverage
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   corpus_labeling

@@ -1,4 +1,4 @@
-> built 2026-10-20 11:00 UTC from 3be96a2 (main) · raglab 0.2.7. Details: build_info.json
+> built 2026-10-20 11:03 UTC from 80594c3 (main) · raglab 0.2.8. Details: build_info.json
 
 # index.html.md
 
@@ -1217,6 +1217,7 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 |--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`judging`](_autosummary/raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
 | [`llm`](_autosummary/raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
+| [`recipes`](_autosummary/raglab.recipes.html.md#module-raglab.recipes) | Recipes: whole workflows composed from raglab's roles, ready to call.                     |
 
 
 # _autosummary/raglab.judging.html.md
@@ -1464,24 +1465,168 @@ already falls back to identity on any failure, so the emitted list is never
 empty — a formulator must never make retrieval worse than the raw sub-goal.
 
 
+# _autosummary/raglab.recipes.corpus_labeling.html.md
+
+# raglab.recipes.corpus_labeling
+
+Label a corpus against a topic, facet by facet, with a graded judge (raglab#8, part B).
+
+[`label_corpus()`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.label_corpus) composes existing pieces and adds no orchestrator:
+
+- a planner that emits one [`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask) per **facet** of the
+  topic, for broad recall;
+- a formulator (identity by default; [`raglab.make_llm_formulator()`](_autosummary/raglab.html.md#raglab.make_llm_formulator) for
+  query expansion);
+- the graded rubric evaluator ([`raglab.make_graded_rubric_evaluator()`](_autosummary/raglab.html.md#raglab.make_graded_rubric_evaluator)),
+  which judges **every** retrieved candidate on its disclosed content;
+- a **coverage** check per facet (enough candidates at `coverage_level`),
+  which, when a facet looks thin and a `reformulate` policy is given, emits a
+  refinement sub-task: the back-edge of [`SingleContextAgent`](_autosummary/raglab.agent.html.md#raglab.agent.SingleContextAgent).
+
+The deliverable is a frozen [`CorpusLabeling`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.CorpusLabeling): each judged artifact’s best
+[`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel) (its `facet` set) and each facet’s coverage.
+Nothing here touches `ir`; the corpus is read through a retriever
+(`ir.as_retriever()` by default).
+
+### Functions
+
+| [`label_corpus`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.label_corpus)(corpus, \*, facets[, retriever, ...])   | Label `corpus` for each of `facets` with a graded judge; see the module.   |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### Classes
+
+| [`CorpusLabeling`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.CorpusLabeling)([labels, coverage, levels])   | The graded labels of a corpus for one topic, and each facet's coverage.                     |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`FacetCoverage`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.FacetCoverage)(facet, judged, covered, ...)   | How well one facet was covered: candidates judged, those at the coverage level, rounds run. |
+
+### *class* raglab.recipes.corpus_labeling.CorpusLabeling(labels=dict(), coverage=dict(), levels=('core', 'strong', 'uses-tools', 'tangential', 'none'))
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The graded labels of a corpus for one topic, and each facet’s coverage.
+
+#### at_least(level)
+
+The artifact ids labelled `level` or better, on the levels they were labelled on.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### *class* raglab.recipes.corpus_labeling.FacetCoverage(facet, judged, covered, rounds, sufficient)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+How well one facet was covered: candidates judged, those at the coverage level, rounds run.
+
+### raglab.recipes.corpus_labeling.label_corpus(corpus, \*, facets, retriever=None, formulator=<function identity_formulator>, judge=None, reformulate=None, levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), coverage_level='strong', min_covered=1, budget=None, k=50, \*\*evaluator_kwargs)
+
+Label `corpus` for each of `facets` with a graded judge; see the module.
+
+* **Parameters:**
+  * **corpus** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – an `ir` corpus or corpus name, read through
+    `ir.as_retriever(corpus, k=k)` unless `retriever` is given.
+  * **facets** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – the topic’s facets, as `{name: goal}` or names (a name is its
+    own goal). One sub-task each.
+  * **retriever** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), list[SearchHit]]]) – inject a `Retriever` instead (a test
+    double, a federated source); `corpus` is then not read.
+  * **formulator** ([`Formulator`](_autosummary/raglab.agent.html.md#raglab.agent.Formulator)) – the Formulator role (identity, or
+    [`raglab.make_llm_formulator()`](_autosummary/raglab.html.md#raglab.make_llm_formulator)).
+  * **judge** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the graded judge (built lazily on `oa` when omitted).
+  * **reformulate** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)]], str | None] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – gap-driven reformulation; when a facet has fewer than
+    `min_covered` labels at `coverage_level` it gets a new query, which
+    becomes the facet’s next sub-task. `None` (default): one round each.
+  * **budget** ([`Budget`](_autosummary/raglab.agent.html.md#raglab.agent.Budget) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the loop bounds (`max_rounds` caps the reformulations).
+  * **\*\*evaluator_kwargs** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – forwarded to
+    [`make_graded_rubric_evaluator()`](_autosummary/raglab.judging.html.md#raglab.judging.make_graded_rubric_evaluator) (`rubric`,
+    `calibration_offset`, `disclose_kwargs`, `rng`, …).
+* **Return type:**
+  [`CorpusLabeling`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.CorpusLabeling)
+
+
+# _autosummary/raglab.recipes.html.md
+
+# raglab.recipes
+
+Recipes: whole workflows composed from raglab’s roles, ready to call.
+
+### Functions
+
+| [`label_corpus`](_autosummary/raglab.recipes.html.md#raglab.recipes.label_corpus)(corpus, \*, facets[, retriever, ...])   | Label `corpus` for each of `facets` with a graded judge; see the module.   |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### Classes
+
+| [`CorpusLabeling`](_autosummary/raglab.recipes.html.md#raglab.recipes.CorpusLabeling)([labels, coverage, levels])   | The graded labels of a corpus for one topic, and each facet's coverage.                     |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`FacetCoverage`](_autosummary/raglab.recipes.html.md#raglab.recipes.FacetCoverage)(facet, judged, covered, ...)   | How well one facet was covered: candidates judged, those at the coverage level, rounds run. |
+
+### *class* raglab.recipes.CorpusLabeling(labels=dict(), coverage=dict(), levels=('core', 'strong', 'uses-tools', 'tangential', 'none'))
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The graded labels of a corpus for one topic, and each facet’s coverage.
+
+#### at_least(level)
+
+The artifact ids labelled `level` or better, on the levels they were labelled on.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### *class* raglab.recipes.FacetCoverage(facet, judged, covered, rounds, sufficient)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+How well one facet was covered: candidates judged, those at the coverage level, rounds run.
+
+### raglab.recipes.label_corpus(corpus, \*, facets, retriever=None, formulator=<function identity_formulator>, judge=None, reformulate=None, levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), coverage_level='strong', min_covered=1, budget=None, k=50, \*\*evaluator_kwargs)
+
+Label `corpus` for each of `facets` with a graded judge; see the module.
+
+* **Parameters:**
+  * **corpus** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – an `ir` corpus or corpus name, read through
+    `ir.as_retriever(corpus, k=k)` unless `retriever` is given.
+  * **facets** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – the topic’s facets, as `{name: goal}` or names (a name is its
+    own goal). One sub-task each.
+  * **retriever** ([`Optional`](https://docs.python.org/3/library/typing.html#typing.Optional)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), list[SearchHit]]]) – inject a `Retriever` instead (a test
+    double, a federated source); `corpus` is then not read.
+  * **formulator** ([`Formulator`](_autosummary/raglab.agent.html.md#raglab.agent.Formulator)) – the Formulator role (identity, or
+    [`raglab.make_llm_formulator()`](_autosummary/raglab.html.md#raglab.make_llm_formulator)).
+  * **judge** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the graded judge (built lazily on `oa` when omitted).
+  * **reformulate** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)]], str | None] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – gap-driven reformulation; when a facet has fewer than
+    `min_covered` labels at `coverage_level` it gets a new query, which
+    becomes the facet’s next sub-task. `None` (default): one round each.
+  * **budget** ([`Budget`](_autosummary/raglab.agent.html.md#raglab.agent.Budget) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the loop bounds (`max_rounds` caps the reformulations).
+  * **\*\*evaluator_kwargs** ([`Any`](https://docs.python.org/3/library/typing.html#typing.Any)) – forwarded to
+    [`make_graded_rubric_evaluator()`](_autosummary/raglab.judging.html.md#raglab.judging.make_graded_rubric_evaluator) (`rubric`,
+    `calibration_offset`, `disclose_kwargs`, `rng`, …).
+* **Return type:**
+  [`CorpusLabeling`](_autosummary/raglab.recipes.corpus_labeling.html.md#raglab.recipes.corpus_labeling.CorpusLabeling)
+
+### Modules
+
+| [`corpus_labeling`](_autosummary/raglab.recipes.corpus_labeling.html.md#module-raglab.recipes.corpus_labeling)   | Label a corpus against a topic, facet by facet, with a graded judge (raglab#8, part B).   |
+|----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+
+
 # about-this-build.html.md
 
 <!-- generated by epythet -->
 
 # About this build
 
-This documentation was built on **2026-10-20 11:00 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2</code></a> on branch <code>main</code>, for **raglab 0.2.7** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 11:03 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/80594c306a811f96f4654ac4732d36355d8247d5"><code>80594c3</code></a> on branch <code>main</code>, for **raglab 0.2.8** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.2.7) is behind the latest release on PyPI (0.2.8): `pip install raglab` gives newer code than these docs describe.
+- The documented version (0.2.8) is behind the latest release on PyPI (0.2.9): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/80594c306a811f96f4654ac4732d36355d8247d5"><code>80594c306a811f96f4654ac4732d36355d8247d5</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -1492,9 +1637,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39411710569">39411710569</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39412096227">39412096227</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code> (in the history of the built commit) |
+| Event commit | <code>80594c306a811f96f4654ac4732d36355d8247d5</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -1519,13 +1664,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.8/">0.2.8</a>, newer than the documented version (0.2.7).
+Latest release: <a href="https://pypi.org/project/raglab/0.2.9/">0.2.9</a>, newer than the documented version (0.2.8).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout 3be96a2696520ddb6349174a6bda3d7e2b0c7bc2
+git checkout 80594c306a811f96f4654ac4732d36355d8247d5
 pip install "epythet==0.2.19"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
