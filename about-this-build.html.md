@@ -2,18 +2,18 @@
 
 # About this build
 
-This documentation was built on **2026-10-20 11:03 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/80594c306a811f96f4654ac4732d36355d8247d5"><code>80594c3</code></a> on branch <code>main</code>, for **raglab 0.2.8** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 11:55 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/a707b74ce803589f32068b4326e41b9ba83fb1e8"><code>a707b74</code></a> on branch <code>main</code>, for **raglab 0.2.9** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.2.8) is behind the latest release on PyPI (0.2.9): `pip install raglab` gives newer code than these docs describe.
+- The documented version (0.2.9) is behind the latest release on PyPI (0.2.10): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/80594c306a811f96f4654ac4732d36355d8247d5"><code>80594c306a811f96f4654ac4732d36355d8247d5</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/a707b74ce803589f32068b4326e41b9ba83fb1e8"><code>a707b74ce803589f32068b4326e41b9ba83fb1e8</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -24,9 +24,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39412096227">39412096227</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39418213252">39418213252</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>80594c306a811f96f4654ac4732d36355d8247d5</code> (in the history of the built commit) |
+| Event commit | <code>a707b74ce803589f32068b4326e41b9ba83fb1e8</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -51,13 +51,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.9/">0.2.9</a>, newer than the documented version (0.2.8).
+Latest release: <a href="https://pypi.org/project/raglab/0.2.10/">0.2.10</a>, newer than the documented version (0.2.9).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout 80594c306a811f96f4654ac4732d36355d8247d5
+git checkout a707b74ce803589f32068b4326e41b9ba83fb1e8
 pip install "epythet==0.2.19"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

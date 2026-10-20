@@ -41,6 +41,8 @@
       Citer
       Budget
       PoolCap
+      RoundRecord
+      RunLog
       SingleContextAgent
    
 .. rubric:: Modules

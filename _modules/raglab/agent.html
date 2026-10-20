@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=b01fafc3"></script>
+    <script src="../../_static/documentation_options.js?v=14672bda"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.2.8" />
+  <meta name="docsearch:version" content="0.2.9" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -747,7 +747,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">runtime_checkable</span>
 
 <span class="c1"># ir owns the retrieval substrate: the Result type, the Retriever leaf</span>
@@ -949,6 +949,61 @@ window.runMermaid = runMermaid;</script>
     <span class="n">max_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">max_sources_per_task</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">max_results_per_task</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span></div>
+
+
+
+<div class="viewcode-block" id="RoundRecord">
+<a class="viewcode-back" href="../../_autosummary/raglab.html#raglab.RoundRecord">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoundRecord</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What one round of the loop decided: the run-log's unit (raglab#6).</span>
+
+<span class="sd">    Written at the evaluator's judgement point, it is the single record shape that</span>
+<span class="sd">    per-run observability (the run-log) and cross-run memory (a purpose store)</span>
+<span class="sd">    both consume. ``purpose`` is the sub-task's original goal; ``goal`` is what this</span>
+<span class="sd">    round actually searched (a refinement, from round 1 on). ``committed`` holds the</span>
+<span class="sd">    hits the evaluator kept, with their **raw** per-source magnitudes: the pool never</span>
+<span class="sd">    carries fused scores, so neither does the record.</span>
+<span class="sd">    """</span>
+
+    <span class="n">purpose</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="nb">round</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">goal</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">sufficient</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">refinement</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">committed</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Result</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">graded</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">GradedLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RoundRecord.to_dict">
+<a class="viewcode-back" href="../../_autosummary/raglab.html#raglab.RoundRecord.to_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""JSON-clean form: hits via ``SearchHit.to_dict``, labels as plain dicts."""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"purpose"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">purpose</span><span class="p">,</span>
+            <span class="s2">"round"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">round</span><span class="p">,</span>
+            <span class="s2">"goal"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span>
+            <span class="s2">"sources"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">),</span>
+            <span class="s2">"sufficient"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sufficient</span><span class="p">,</span>
+            <span class="s2">"refinement"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">refinement</span><span class="p">,</span>
+            <span class="s2">"committed"</span><span class="p">:</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">committed</span><span class="p">],</span>
+            <span class="s2">"graded"</span><span class="p">:</span> <span class="p">{</span><span class="n">aid</span><span class="p">:</span> <span class="n">asdict</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">aid</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graded</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RunLog">
+<a class="viewcode-back" href="../../_autosummary/raglab.html#raglab.RunLog">[docs]</a>
+<span class="nd">@runtime_checkable</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RunLog</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A sink for the loop's :class:`RoundRecord` s, one call per round.</span>
+
+<span class="sd">    Opt-in (the agent's ``run_log`` defaults to ``None``: nothing is recorded).</span>
+<span class="sd">    ``list.append`` is one: ``log = []; make_search_agent(sources, run_log=log.append)``.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">:</span> <span class="n">RoundRecord</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span></div>
 
 
 
@@ -1177,6 +1232,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">citer</span><span class="p">:</span> <span class="n">Citer</span> <span class="o">=</span> <span class="n">identity_citer</span>
     <span class="n">budget</span><span class="p">:</span> <span class="n">Budget</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Budget</span><span class="p">)</span>
     <span class="n">pool_cap</span><span class="p">:</span> <span class="n">PoolCap</span> <span class="o">=</span> <span class="n">rank_fair_cap</span>
+    <span class="n">run_log</span><span class="p">:</span> <span class="n">RunLog</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Query</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Run the agent for *query*; returns the final ranked, cited results."""</span>
@@ -1195,7 +1251,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">kept</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">current</span> <span class="o">=</span> <span class="n">task</span>
         <span class="n">limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_results_per_task</span>
-        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_rounds</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">round_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_rounds</span><span class="p">)):</span>
             <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">current</span><span class="o">.</span><span class="n">sources</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">budget</span><span class="o">.</span><span class="n">max_sources_per_task</span><span class="p">]:</span>
                 <span class="n">retriever</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -1215,11 +1271,30 @@ window.runMermaid = runMermaid;</script>
             <span class="n">pool</span> <span class="o">=</span> <span class="n">kept</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_cap</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">kept</span><span class="p">)))</span>
             <span class="n">judged</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluator</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">pool</span><span class="p">)</span>
             <span class="n">kept</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">judged</span><span class="o">.</span><span class="n">relevant</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_log</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">run_log</span><span class="p">(</span><span class="n">_round_record</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">round_</span><span class="p">,</span> <span class="n">judged</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">judged</span><span class="o">.</span><span class="n">sufficient</span> <span class="ow">or</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">break</span>
             <span class="n">current</span> <span class="o">=</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span>  <span class="c1"># the back-edge: re-query</span>
         <span class="k">return</span> <span class="n">kept</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_round_record</span><span class="p">(</span>
+    <span class="n">task</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">current</span><span class="p">:</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">round_</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">judged</span><span class="p">:</span> <span class="n">Judgement</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RoundRecord</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The :class:`RoundRecord` of one round of :meth:`SingleContextAgent._run_task`."""</span>
+    <span class="n">refinement</span> <span class="o">=</span> <span class="n">judged</span><span class="o">.</span><span class="n">refinement</span>
+    <span class="k">return</span> <span class="n">RoundRecord</span><span class="p">(</span>
+        <span class="n">purpose</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span>
+        <span class="nb">round</span><span class="o">=</span><span class="n">round_</span><span class="p">,</span>
+        <span class="n">goal</span><span class="o">=</span><span class="n">current</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span>
+        <span class="n">sources</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">current</span><span class="o">.</span><span class="n">sources</span><span class="p">),</span>
+        <span class="n">sufficient</span><span class="o">=</span><span class="n">judged</span><span class="o">.</span><span class="n">sufficient</span><span class="p">,</span>
+        <span class="n">refinement</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">refinement</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">refinement</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span>
+        <span class="n">committed</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">judged</span><span class="o">.</span><span class="n">relevant</span><span class="p">),</span>
+        <span class="n">graded</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">judged</span><span class="o">.</span><span class="n">graded</span><span class="p">),</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="make_search_agent">
@@ -1234,6 +1309,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">citer</span><span class="p">:</span> <span class="n">Citer</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">budget</span><span class="p">:</span> <span class="n">Budget</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">pool_cap</span><span class="p">:</span> <span class="n">PoolCap</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">run_log</span><span class="p">:</span> <span class="n">RunLog</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SingleContextAgent</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build a :class:`SingleContextAgent` over *sources* with smart defaults.</span>
 
@@ -1242,7 +1318,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``ir.retrievers()`` view. Every role defaults to its no-LLM thin-slice</span>
 <span class="sd">    implementation, so ``make_search_agent(sources)("query")`` just works;</span>
 <span class="sd">    inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the</span>
-<span class="sd">    back-edge.</span>
+<span class="sd">    back-edge. Pass a ``run_log`` (any callable taking a :class:`RoundRecord`, e.g.</span>
+<span class="sd">    ``list.append``) to record what each round decided.</span>
 
 <span class="sd">    A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the</span>
 <span class="sd">    ``Result`` alias): the loop stamps provenance (``hit.source``) on its</span>
@@ -1257,6 +1334,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">citer</span><span class="o">=</span><span class="n">citer</span> <span class="ow">or</span> <span class="n">identity_citer</span><span class="p">,</span>
         <span class="n">budget</span><span class="o">=</span><span class="n">budget</span> <span class="ow">or</span> <span class="n">Budget</span><span class="p">(),</span>
         <span class="n">pool_cap</span><span class="o">=</span><span class="n">pool_cap</span> <span class="ow">or</span> <span class="n">rank_fair_cap</span><span class="p">,</span>
+        <span class="n">run_log</span><span class="o">=</span><span class="n">run_log</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 

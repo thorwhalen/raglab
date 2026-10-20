@@ -50,21 +50,23 @@ Inject an LLM `formulator` (query rewrite/HyDE) and `evaluator` (sufficiency
 
 ### Classes
 
-| [`Query`](#raglab.Query)(text[, constraints])                      | A user intent: free text plus optional structured constraints.                   |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`SubTask`](#raglab.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.       |
-| [`LowLevelQuery`](#raglab.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                           |
-| [`Judgement`](#raglab.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                   |
-| [`GradedLabel`](#raglab.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence. |
-| [`Result`](#raglab.Result)                                          |                                                                                  |
-| [`Planner`](#raglab.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                    |
-| [`Formulator`](#raglab.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                    |
-| [`Evaluator`](#raglab.Evaluator)(\*args, \*\*kwargs)                   | Judge relevance + sufficiency; optionally emit a refinement (back-edge).         |
-| [`Reranker`](#raglab.Reranker)(\*args, \*\*kwargs)                    | Produce the final ordering over the (cross-source) merged results.               |
-| [`Citer`](#raglab.Citer)(\*args, \*\*kwargs)                       | Confirm/annotate that each result supports its use (identity by default).        |
-| [`Budget`](#raglab.Budget)([max_rounds, max_sources_per_task, ...]) | Loop bounds: the safety net under the (harder) sufficiency decision.             |
-| [`PoolCap`](#raglab.PoolCap)(\*args, \*\*kwargs)                     | Bound the pool the evaluator sees to at most `limit` results.                    |
-| [`SingleContextAgent`](#raglab.SingleContextAgent)(sources[, planner, ...])     | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).       |
+| [`Query`](#raglab.Query)(text[, constraints])                      | A user intent: free text plus optional structured constraints.                                            |
+|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`SubTask`](#raglab.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.                                |
+| [`LowLevelQuery`](#raglab.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                                                    |
+| [`Judgement`](#raglab.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                                            |
+| [`GradedLabel`](#raglab.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.                          |
+| [`Result`](#raglab.Result)                                          |                                                                                                           |
+| [`Planner`](#raglab.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                                             |
+| [`Formulator`](#raglab.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                                             |
+| [`Evaluator`](#raglab.Evaluator)(\*args, \*\*kwargs)                   | Judge relevance + sufficiency; optionally emit a refinement (back-edge).                                  |
+| [`Reranker`](#raglab.Reranker)(\*args, \*\*kwargs)                    | Produce the final ordering over the (cross-source) merged results.                                        |
+| [`Citer`](#raglab.Citer)(\*args, \*\*kwargs)                       | Confirm/annotate that each result supports its use (identity by default).                                 |
+| [`Budget`](#raglab.Budget)([max_rounds, max_sources_per_task, ...]) | Loop bounds: the safety net under the (harder) sufficiency decision.                                      |
+| [`PoolCap`](#raglab.PoolCap)(\*args, \*\*kwargs)                     | Bound the pool the evaluator sees to at most `limit` results.                                             |
+| [`RoundRecord`](#raglab.RoundRecord)(purpose, round, goal, sources, ...) | What one round of the loop decided: the run-log's unit (raglab#6).                                        |
+| [`RunLog`](#raglab.RunLog)(\*args, \*\*kwargs)                      | A sink for the loop's [`RoundRecord`](#raglab.RoundRecord) s, one call per round. |
+| [`SingleContextAgent`](#raglab.SingleContextAgent)(sources[, planner, ...])     | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).                                |
 
 ### *class* raglab.Budget(max_rounds=3, max_sources_per_task=4, max_results_per_task=50)
 
@@ -158,7 +160,36 @@ Produce the final ordering over the (cross-source) merged results.
 
 alias of `SearchHit`
 
-### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>)
+### *class* raglab.RoundRecord(purpose, round, goal, sources, sufficient, refinement, committed, graded=dict())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one round of the loop decided: the run-log’s unit (raglab#6).
+
+Written at the evaluator’s judgement point, it is the single record shape that
+per-run observability (the run-log) and cross-run memory (a purpose store)
+both consume. `purpose` is the sub-task’s original goal; `goal` is what this
+round actually searched (a refinement, from round 1 on). `committed` holds the
+hits the evaluator kept, with their **raw** per-source magnitudes: the pool never
+carries fused scores, so neither does the record.
+
+#### to_dict()
+
+JSON-clean form: hits via `SearchHit.to_dict`, labels as plain dicts.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### *class* raglab.RunLog(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+A sink for the loop’s [`RoundRecord`](#raglab.RoundRecord) s, one call per round.
+
+Opt-in (the agent’s `run_log` defaults to `None`: nothing is recorded).
+`list.append` is one: `log = []; make_search_agent(sources, run_log=log.append)`.
+
+### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -428,7 +459,7 @@ A parametrized [`rrf_reranker()`](#raglab.rrf_reranker) (per-source trust weight
 * **Return type:**
   [`Reranker`](raglab.agent.html.md#raglab.agent.Reranker)
 
-### raglab.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None)
+### raglab.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None)
 
 Build a [`SingleContextAgent`](#raglab.SingleContextAgent) over *sources* with smart defaults.
 
@@ -437,7 +468,8 @@ Build a [`SingleContextAgent`](#raglab.SingleContextAgent) over *sources* with s
 `ir.retrievers()` view. Every role defaults to its no-LLM thin-slice
 implementation, so `make_search_agent(sources)("query")` just works;
 inject an LLM `formulator` / `evaluator` to turn on rewriting and the
-back-edge.
+back-edge. Pass a `run_log` (any callable taking a [`RoundRecord`](#raglab.RoundRecord), e.g.
+`list.append`) to record what each round decided.
 
 A custom `Retriever` must return `ir.SearchHit` instances (the
 `Result` alias): the loop stamps provenance (`hit.source`) on its
