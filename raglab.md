@@ -1,4 +1,4 @@
-> built 2026-10-20 12:00 UTC from 21babcc (main) · raglab 0.2.10. Details: build_info.json
+> built 2026-10-20 12:20 UTC from 035b8ea (main) · raglab 0.2.11. Details: build_info.json
 
 # index.html.md
 
@@ -693,6 +693,96 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask)]
 
 
+# _autosummary/raglab.bench.html.md
+
+# raglab.bench
+
+Cross-run benchmark: the instrument for purpose-indexed memory (raglab#15, item 4).
+
+The follow-ups of the memory design (CONSOLIDATE, SUPERSEDE, purpose transfer, DECAY)
+are each gated on an *observed* trigger. This module is what observes: it replays a
+workload of purposes through an agent twice, once cold (no memory) and once warm (with
+a [`PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore)), counting the source calls of each, and reports
+
+* `sweeps_cold` / `sweeps_warm`: retriever calls without and with memory (what
+  memory saves),
+* `recall`: the share of the cold run’s hits the warm run also returned (what memory
+  costs in answer quality: `1.0` means nothing was lost),
+* `extractions`: units kept per purpose after the warm run (the CONSOLIDATE
+  trigger is “this exceeds a threshold”).
+
+Cold and warm calls interleave on the same sources, purpose by purpose, so a source
+that changes over time shows as lost recall: that is the SUPERSEDE trigger, but so is
+plain non-determinism (an approximate index, a live API). Run the benchmark on a
+deterministic snapshot to read `recall` as what memory alone lost.
+
+Hermetic and offline: pass any sources; nothing here calls an LLM:
+
+```default
+report = cross_run_benchmark(sources, ["invoices 2023", "2023 invoices"])
+report.sweeps_saved, report.recall
+```
+
+### Functions
+
+| [`cross_run_benchmark`](_autosummary/raglab.bench.html.md#raglab.bench.cross_run_benchmark)(sources, workload, \*[, ...])   | Replay `workload` (purposes, in order, repeats and paraphrases welcome) cold and warm, and report what memory saved and what it lost.   |
+|------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`extraction_counts`](_autosummary/raglab.bench.html.md#raglab.bench.extraction_counts)(store)                            | `{purpose: number of units kept}` (each purpose under its own statement).                                                               |
+
+### Classes
+
+| [`CrossRunReport`](_autosummary/raglab.bench.html.md#raglab.bench.CrossRunReport)(rows[, extractions])   | Totals over a workload, with the per-purpose `rows` and `extractions`.       |
+|----------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`PurposeRow`](_autosummary/raglab.bench.html.md#raglab.bench.PurposeRow)(purpose, sweeps_cold, ...) | One purpose of the workload: its source calls cold and warm, and its recall. |
+
+### *class* raglab.bench.CrossRunReport(rows, extractions=dict())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Totals over a workload, with the per-purpose `rows` and `extractions`.
+
+#### *property* recall *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Mean, over purposes, of the share of cold hits the warm run also returned.
+
+#### *property* sweeps_saved *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Share of the cold source calls the warm run did not make.
+
+### *class* raglab.bench.PurposeRow(purpose, sweeps_cold, sweeps_warm, recall)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One purpose of the workload: its source calls cold and warm, and its recall.
+
+### raglab.bench.cross_run_benchmark(sources, workload, \*, agent_factory=<function make_search_agent>, memory_factory=<class 'raglab.memory.PurposeStore'>, \*\*agent_kwargs)
+
+Replay `workload` (purposes, in order, repeats and paraphrases welcome) cold
+and warm, and report what memory saved and what it lost.
+
+`agent_factory(sources, memory=..., **agent_kwargs)` builds the agent (default
+[`make_search_agent()`](_autosummary/raglab.agent.html.md#raglab.agent.make_search_agent)); the cold agent gets `memory=None`.
+The warm agent shares one `memory_factory()` store across the whole workload.
+
+* **Return type:**
+  [`CrossRunReport`](_autosummary/raglab.bench.html.md#raglab.bench.CrossRunReport)
+
+### raglab.bench.extraction_counts(store)
+
+`{purpose: number of units kept}` (each purpose under its own statement).
+
+```pycon
+>>> from raglab.memory import ExtractionUnit
+>>> s = PurposeStore()
+>>> s["q"] = [ExtractionUnit("q", {"artifact_id": "a"}, 0.0)]
+>>> extraction_counts(s)
+{'q': 1}
+```
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
+
 # _autosummary/raglab.html.md
 
 # raglab
@@ -1351,6 +1441,7 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 
 | [`agent`](_autosummary/raglab.agent.html.md#module-raglab.agent)     | The Composable Search Agent — roles wired by a control loop (ir_09).                      |
 |--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`bench`](_autosummary/raglab.bench.html.md#module-raglab.bench)     | Cross-run benchmark: the instrument for purpose-indexed memory (raglab#15, item 4).       |
 | [`judging`](_autosummary/raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
 | [`llm`](_autosummary/raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
 | [`memory`](_autosummary/raglab.memory.html.md#module-raglab.memory)   | Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).       |
@@ -1956,18 +2047,18 @@ Label `corpus` for each of `facets` with a graded judge; see the module.
 
 # About this build
 
-This documentation was built on **2026-10-20 12:00 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/21babcc839d4deeba643566895a88cf609bedb74"><code>21babcc</code></a> on branch <code>main</code>, for **raglab 0.2.10** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 12:20 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/035b8eaf4cb008ff4d3895db9e6e5067359d4485"><code>035b8ea</code></a> on branch <code>main</code>, for **raglab 0.2.11** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.2.10) is behind the latest release on PyPI (0.2.11): `pip install raglab` gives newer code than these docs describe.
+- The documented version (0.2.11) is behind the latest release on PyPI (0.2.12): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/21babcc839d4deeba643566895a88cf609bedb74"><code>21babcc839d4deeba643566895a88cf609bedb74</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/035b8eaf4cb008ff4d3895db9e6e5067359d4485"><code>035b8eaf4cb008ff4d3895db9e6e5067359d4485</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -1978,9 +2069,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39418902770">39418902770</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39421287321">39421287321</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>21babcc839d4deeba643566895a88cf609bedb74</code> (in the history of the built commit) |
+| Event commit | <code>035b8eaf4cb008ff4d3895db9e6e5067359d4485</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -2005,13 +2096,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.11/">0.2.11</a>, newer than the documented version (0.2.10).
+Latest release: <a href="https://pypi.org/project/raglab/0.2.12/">0.2.12</a>, newer than the documented version (0.2.11).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout 21babcc839d4deeba643566895a88cf609bedb74
+git checkout 035b8eaf4cb008ff4d3895db9e6e5067359d4485
 pip install "epythet==0.2.20"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

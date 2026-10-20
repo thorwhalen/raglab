@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=8db09a1e"></script>
+    <script src="_static/documentation_options.js?v=29c81e07"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -411,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.2.10" />
+  <meta name="docsearch:version" content="0.2.11" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -762,20 +762,24 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/raglab.html#raglab.SingleContextAgent.citer">(raglab.SingleContextAgent method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.memory.html#raglab.memory.PurposeStore.clock">clock() (raglab.memory.PurposeStore method)</a>
 
       <ul>
         <li><a href="_autosummary/raglab.html#raglab.PurposeStore.clock">(raglab.PurposeStore method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.recipes.html#raglab.recipes.CorpusLabeling">CorpusLabeling (class in raglab.recipes)</a>
 
       <ul>
         <li><a href="_autosummary/raglab.recipes.corpus_labeling.html#raglab.recipes.corpus_labeling.CorpusLabeling">(class in raglab.recipes.corpus_labeling)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.cross_run_benchmark">cross_run_benchmark() (in module raglab.bench)</a>
+</li>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.CrossRunReport">CrossRunReport (class in raglab.bench)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -802,14 +806,16 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/raglab.agent.html#raglab.agent.Evaluator">(class in raglab.agent)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.agent.html#raglab.agent.SingleContextAgent.evaluator">evaluator() (raglab.agent.SingleContextAgent method)</a>
 
       <ul>
         <li><a href="_autosummary/raglab.html#raglab.SingleContextAgent.evaluator">(raglab.SingleContextAgent method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.extraction_counts">extraction_counts() (in module raglab.bench)</a>
+</li>
       <li><a href="_autosummary/raglab.html#raglab.ExtractionUnit">ExtractionUnit (class in raglab)</a>
 
       <ul>
@@ -982,6 +988,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="_autosummary/raglab.agent.html#module-raglab.agent">raglab.agent</a>
 </li>
+        <li><a href="_autosummary/raglab.bench.html#module-raglab.bench">raglab.bench</a>
+</li>
         <li><a href="_autosummary/raglab.judging.html#module-raglab.judging">raglab.judging</a>
 </li>
         <li><a href="_autosummary/raglab.llm.html#module-raglab.llm">raglab.llm</a>
@@ -1025,14 +1033,14 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/raglab.html#raglab.SingleContextAgent.planner">(raglab.SingleContextAgent method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.agent.html#raglab.agent.SingleContextAgent.pool_cap">pool_cap() (raglab.agent.SingleContextAgent method)</a>
 
       <ul>
         <li><a href="_autosummary/raglab.html#raglab.SingleContextAgent.pool_cap">(raglab.SingleContextAgent method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.html#raglab.PoolCap">PoolCap (class in raglab)</a>
 
       <ul>
@@ -1040,6 +1048,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="_autosummary/raglab.memory.html#raglab.memory.purpose_id">purpose_id() (in module raglab.memory)</a>
+</li>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.PurposeRow">PurposeRow (class in raglab.bench)</a>
 </li>
       <li><a href="_autosummary/raglab.html#raglab.PurposeStore">PurposeStore (class in raglab)</a>
 
@@ -1077,6 +1087,13 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="_autosummary/raglab.agent.html#module-raglab.agent">module</a>
+</li>
+      </ul></li>
+      <li>
+    raglab.bench
+
+      <ul>
+        <li><a href="_autosummary/raglab.bench.html#module-raglab.bench">module</a>
 </li>
       </ul></li>
       <li>
@@ -1123,6 +1140,8 @@ window.runMermaid = runMermaid;</script>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="_autosummary/raglab.memory.html#raglab.memory.ReadStrategy">ReadStrategy (class in raglab.memory)</a>
+</li>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.CrossRunReport.recall">recall (raglab.bench.CrossRunReport property)</a>
 </li>
       <li><a href="_autosummary/raglab.memory.html#raglab.memory.PurposeStore.recall">recall() (raglab.memory.PurposeStore method)</a>
 
@@ -1196,6 +1215,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="_autosummary/raglab.agent.html#raglab.agent.SubTask">(class in raglab.agent)</a>
 </li>
       </ul></li>
+      <li><a href="_autosummary/raglab.bench.html#raglab.bench.CrossRunReport.sweeps_saved">sweeps_saved (raglab.bench.CrossRunReport property)</a>
+</li>
   </ul></td>
 </tr></table>
 

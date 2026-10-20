@@ -654,6 +654,7 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 
 | [`agent`](raglab.agent.html.md#module-raglab.agent)     | The Composable Search Agent — roles wired by a control loop (ir_09).                      |
 |--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`bench`](raglab.bench.html.md#module-raglab.bench)     | Cross-run benchmark: the instrument for purpose-indexed memory (raglab#15, item 4).       |
 | [`judging`](raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
 | [`llm`](raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
 | [`memory`](raglab.memory.html.md#module-raglab.memory)   | Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).       |

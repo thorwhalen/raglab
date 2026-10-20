@@ -44,7 +44,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=8db09a1e"></script>
+    <script src="../_static/documentation_options.js?v=29c81e07"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,7 +58,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.2.10" />
+  <meta name="docsearch:version" content="0.2.11" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -321,6 +321,7 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active has-children"><a aria-current="page" class="current reference internal" href="#">raglab</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="raglab.agent.html">raglab.agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="raglab.bench.html">raglab.bench</a></li>
 <li class="toctree-l2"><a class="reference internal" href="raglab.judging.html">raglab.judging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="raglab.llm.html">raglab.llm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="raglab.memory.html">raglab.memory</a></li>
@@ -1263,16 +1264,19 @@ is the explicit homogeneous-sources opt-in. The default fan-in is
 <tr class="row-odd"><td><p><a class="reference internal" href="raglab.agent.html#module-raglab.agent" title="raglab.agent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">agent</span></code></a></p></td>
 <td><p>The Composable Search Agent — roles wired by a control loop (ir_09).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="raglab.judging.html#module-raglab.judging" title="raglab.judging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">judging</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="raglab.bench.html#module-raglab.bench" title="raglab.bench"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bench</span></code></a></p></td>
+<td><p>Cross-run benchmark: the instrument for purpose-indexed memory (raglab#15, item 4).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="raglab.judging.html#module-raglab.judging" title="raglab.judging"><code class="xref py py-obj docutils literal notranslate"><span class="pre">judging</span></code></a></p></td>
 <td><p>Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="raglab.llm.html#module-raglab.llm" title="raglab.llm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">llm</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="raglab.llm.html#module-raglab.llm" title="raglab.llm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">llm</span></code></a></p></td>
 <td><p>LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="raglab.memory.html#module-raglab.memory" title="raglab.memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memory</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="raglab.memory.html#module-raglab.memory" title="raglab.memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memory</span></code></a></p></td>
 <td><p>Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="raglab.recipes.html#module-raglab.recipes" title="raglab.recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recipes</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="raglab.recipes.html#module-raglab.recipes" title="raglab.recipes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recipes</span></code></a></p></td>
 <td><p>Recipes: whole workflows composed from raglab's roles, ready to call.</p></td>
 </tr>
 </tbody>

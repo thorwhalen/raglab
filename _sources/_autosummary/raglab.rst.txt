@@ -55,6 +55,7 @@
    :recursive:
 
    agent
+   bench
    judging
    llm
    memory

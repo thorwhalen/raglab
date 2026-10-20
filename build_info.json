@@ -1,32 +1,32 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-20T12:00:58Z",
+  "built_at": "2026-10-20T12:20:18Z",
   "package": {
     "name": "raglab",
-    "version": "0.2.10",
+    "version": "0.2.11",
     "display_name": "raglab",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "21babcc839d4deeba643566895a88cf609bedb74",
-    "short_commit": "21babcc",
+    "commit": "035b8eaf4cb008ff4d3895db9e6e5067359d4485",
+    "short_commit": "035b8ea",
     "branch": "main",
     "tags": [],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/raglab",
-    "commit_url": "https://github.com/thorwhalen/raglab/commit/21babcc839d4deeba643566895a88cf609bedb74",
+    "commit_url": "https://github.com/thorwhalen/raglab/commit/035b8eaf4cb008ff4d3895db9e6e5067359d4485",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/raglab",
-    "sha": "21babcc839d4deeba643566895a88cf609bedb74",
+    "sha": "035b8eaf4cb008ff4d3895db9e6e5067359d4485",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "39418902770",
-    "run_url": "https://github.com/thorwhalen/raglab/actions/runs/39418902770",
+    "run_id": "39421287321",
+    "run_url": "https://github.com/thorwhalen/raglab/actions/runs/39421287321",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -55,21 +55,21 @@
     "docs_dir": "docsrc"
   },
   "site": {
-    "modules_documented": 7,
-    "objects_documented": 118
+    "modules_documented": 8,
+    "objects_documented": 124
   },
   "pypi": {
     "checked": true,
-    "latest": "0.2.11",
+    "latest": "0.2.12",
     "relation": "behind",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/raglab && cd raglab\ngit checkout 21babcc839d4deeba643566895a88cf609bedb74\npip install \"epythet==0.2.20\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/raglab && cd raglab\ngit checkout 035b8eaf4cb008ff4d3895db9e6e5067359d4485\npip install \"epythet==0.2.20\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": false,
     "notes": [
-      "The documented version (0.2.10) is behind the latest release on PyPI (0.2.11): `pip install raglab` gives newer code than these docs describe."
+      "The documented version (0.2.11) is behind the latest release on PyPI (0.2.12): `pip install raglab` gives newer code than these docs describe."
     ]
   }
 }

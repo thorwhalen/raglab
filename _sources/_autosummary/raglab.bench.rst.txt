@@ -1,0 +1,20 @@
+raglab.bench
+============
+
+.. automodule:: raglab.bench
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cross_run_benchmark
+      extraction_counts
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CrossRunReport
+      PurposeRow
+   
