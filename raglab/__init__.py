@@ -33,6 +33,7 @@ from .agent import (
     GradedLabel,
     Judgement,
     LowLevelQuery,
+    Memory,
     Planner,
     PoolCap,
     RoundRecord,
@@ -55,6 +56,7 @@ from .agent import (
     score_reranker,
     single_subtask_planner,
 )
+from .memory import ExtractionUnit, PurposeStore
 from .llm import EVALUATION_PROMPT, make_llm_evaluator, make_llm_formulator
 from .judging import (
     DEFAULT_LEVELS,
@@ -79,6 +81,9 @@ __all__ = [
     "Citer",
     "Budget",
     "PoolCap",
+    "Memory",
+    "PurposeStore",
+    "ExtractionUnit",
     "RoundRecord",
     "RunLog",
     "rank_fair_cap",

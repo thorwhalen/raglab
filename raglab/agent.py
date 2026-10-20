@@ -214,7 +214,8 @@ class RoundRecord:
     both consume. ``purpose`` is the sub-task's original goal; ``goal`` is what this
     round actually searched (a refinement, from round 1 on). ``committed`` holds the
     hits the evaluator kept, with their **raw** per-source magnitudes: the pool never
-    carries fused scores, so neither does the record.
+    carries fused scores, so neither does the record. Round ``-1`` is the recall
+    round of an agent with a ``memory``: its pool was recalled, not swept.
     """
 
     purpose: str
@@ -247,6 +248,20 @@ class RunLog(Protocol):
     Opt-in (the agent's ``run_log`` defaults to ``None``: nothing is recorded).
     ``list.append`` is one: ``log = []; make_search_agent(sources, run_log=log.append)``.
     """
+
+    def __call__(self, record: RoundRecord) -> None: ...
+
+
+@runtime_checkable
+class Memory(Protocol):
+    """Cross-run memory: recall hits for a purpose; take :class:`RoundRecord` s.
+
+    Opt-in (``SingleContextAgent.memory`` defaults to ``None``). Before sweeping a
+    sub-task, the agent offers the recalled hits to the evaluator; if they are
+    sufficient, it does not sweep. :class:`raglab.memory.PurposeStore` is one.
+    """
+
+    def recall_hits(self, purpose: str) -> Sequence[Result]: ...
 
     def __call__(self, record: RoundRecord) -> None: ...
 
@@ -445,6 +460,7 @@ class SingleContextAgent:
     budget: Budget = field(default_factory=Budget)
     pool_cap: PoolCap = rank_fair_cap
     run_log: RunLog | None = None
+    memory: Memory | None = None
 
     def __call__(self, query: str | Query) -> list[Result]:
         """Run the agent for *query*; returns the final ranked, cited results."""
@@ -463,6 +479,13 @@ class SingleContextAgent:
         kept: list[Result] = []
         current = task
         limit = self.budget.max_results_per_task
+        if self.memory is not None and (recalled := self.memory.recall_hits(task.goal)):
+            # the recall round: what past runs kept for this (or a related) purpose
+            judged = self.evaluator(task, self.pool_cap(list(recalled), limit))
+            kept = list(judged.relevant)
+            self._record(_round_record(task, task, -1, judged))
+            if judged.sufficient:
+                return kept
         for round_ in range(max(1, self.budget.max_rounds)):
             found: list[Result] = []
             for source in current.sources[: self.budget.max_sources_per_task]:
@@ -483,12 +506,16 @@ class SingleContextAgent:
             pool = kept + self.pool_cap(fresh, max(0, limit - len(kept)))
             judged = self.evaluator(current, pool)
             kept = list(judged.relevant)
-            if self.run_log is not None:
-                self.run_log(_round_record(task, current, round_, judged))
+            self._record(_round_record(task, current, round_, judged))
             if judged.sufficient or judged.refinement is None:
                 break
             current = judged.refinement  # the back-edge: re-query
         return kept
+
+    def _record(self, record: RoundRecord) -> None:
+        for sink in (self.run_log, self.memory):
+            if sink is not None:
+                sink(record)
 
 
 def _round_record(
@@ -519,6 +546,7 @@ def make_search_agent(
     budget: Budget | None = None,
     pool_cap: PoolCap | None = None,
     run_log: RunLog | None = None,
+    memory: Memory | None = None,
 ) -> SingleContextAgent:
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
@@ -528,7 +556,8 @@ def make_search_agent(
     implementation, so ``make_search_agent(sources)("query")`` just works;
     inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the
     back-edge. Pass a ``run_log`` (any callable taking a :class:`RoundRecord`, e.g.
-    ``list.append``) to record what each round decided.
+    ``list.append``) to record what each round decided, and a ``memory`` (e.g. a
+    :class:`raglab.memory.PurposeStore`) to journal what runs keep and reuse it.
 
     A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the
     ``Result`` alias): the loop stamps provenance (``hit.source``) on its
@@ -544,6 +573,7 @@ def make_search_agent(
         budget=budget or Budget(),
         pool_cap=pool_cap or rank_fair_cap,
         run_log=run_log,
+        memory=memory,
     )
 
 
