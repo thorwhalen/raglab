@@ -299,4 +299,3 @@ class PurposeStore(MutableMapping):
             if relevance >= self.min_relevance:
                 related.append((relevance, other))
         return related
-
