@@ -206,3 +206,41 @@ def test_agent_over_real_ir_corpus():
     assert results[0].artifact_id == "deploy"
     assert isinstance(results[0], SearchHit)
     results[0].to_dict()  # the substrate edge is serialization-clean
+
+
+# ----- run-log (raglab#6) --------------------------------------------------- #
+
+
+def test_run_log_records_each_round_json_clean():
+    import json
+
+    retriever = _fake_retriever(_hits(("a", 0.9), ("b", 0.4)))
+    refine = SubTask(goal="better q", sources=("s",))
+    verdicts = iter(
+        [
+            Judgement(relevant=_hits(("a", 0.9)), sufficient=False, refinement=refine),
+            Judgement(relevant=_hits(("a", 0.9), ("b", 0.4)), sufficient=True),
+        ]
+    )
+    log = []
+    agent = make_search_agent(
+        {"s": retriever},
+        evaluator=lambda task, pool: next(verdicts),
+        run_log=log.append,
+    )
+    agent("q")
+    assert [(r.purpose, r.round, r.goal, r.sufficient, r.refinement) for r in log] == [
+        ("q", 0, "q", False, "better q"),
+        ("q", 1, "better q", True, None),
+    ]
+    assert [h.artifact_id for h in log[1].committed] == ["a", "b"]
+    d = json.loads(json.dumps(log[0].to_dict()))
+    assert d["committed"][0]["score"] == 0.9  # raw magnitude, not a fused score
+    assert isinstance(raglab.make_search_agent({}).run_log, type(None))
+
+
+def test_run_log_does_not_change_results():
+    hits = _hits(("a", 0.9), ("b", 0.4))
+    plain = make_search_agent({"s": _fake_retriever(hits)})("q")
+    logged = make_search_agent({"s": _fake_retriever(hits)}, run_log=[].append)("q")
+    assert plain == logged

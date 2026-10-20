@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
 # ir owns the retrieval substrate: the Result type, the Retriever leaf
@@ -203,6 +203,52 @@ class Budget:
     max_rounds: int = 3
     max_sources_per_task: int = 4
     max_results_per_task: int = 50
+
+
+@dataclass(frozen=True)
+class RoundRecord:
+    """What one round of the loop decided: the run-log's unit (raglab#6).
+
+    Written at the evaluator's judgement point, it is the single record shape that
+    per-run observability (the run-log) and cross-run memory (a purpose store)
+    both consume. ``purpose`` is the sub-task's original goal; ``goal`` is what this
+    round actually searched (a refinement, from round 1 on). ``committed`` holds the
+    hits the evaluator kept, with their **raw** per-source magnitudes: the pool never
+    carries fused scores, so neither does the record.
+    """
+
+    purpose: str
+    round: int
+    goal: str
+    sources: tuple[str, ...]
+    sufficient: bool
+    refinement: str | None
+    committed: tuple[Result, ...]
+    graded: Mapping[str, GradedLabel] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        """JSON-clean form: hits via ``SearchHit.to_dict``, labels as plain dicts."""
+        return {
+            "purpose": self.purpose,
+            "round": self.round,
+            "goal": self.goal,
+            "sources": list(self.sources),
+            "sufficient": self.sufficient,
+            "refinement": self.refinement,
+            "committed": [h.to_dict() for h in self.committed],
+            "graded": {aid: asdict(label) for aid, label in self.graded.items()},
+        }
+
+
+@runtime_checkable
+class RunLog(Protocol):
+    """A sink for the loop's :class:`RoundRecord` s, one call per round.
+
+    Opt-in (the agent's ``run_log`` defaults to ``None``: nothing is recorded).
+    ``list.append`` is one: ``log = []; make_search_agent(sources, run_log=log.append)``.
+    """
+
+    def __call__(self, record: RoundRecord) -> None: ...
 
 
 @runtime_checkable
@@ -398,6 +444,7 @@ class SingleContextAgent:
     citer: Citer = identity_citer
     budget: Budget = field(default_factory=Budget)
     pool_cap: PoolCap = rank_fair_cap
+    run_log: RunLog | None = None
 
     def __call__(self, query: str | Query) -> list[Result]:
         """Run the agent for *query*; returns the final ranked, cited results."""
@@ -416,7 +463,7 @@ class SingleContextAgent:
         kept: list[Result] = []
         current = task
         limit = self.budget.max_results_per_task
-        for _ in range(max(1, self.budget.max_rounds)):
+        for round_ in range(max(1, self.budget.max_rounds)):
             found: list[Result] = []
             for source in current.sources[: self.budget.max_sources_per_task]:
                 retriever = self.sources.get(source)
@@ -436,10 +483,29 @@ class SingleContextAgent:
             pool = kept + self.pool_cap(fresh, max(0, limit - len(kept)))
             judged = self.evaluator(current, pool)
             kept = list(judged.relevant)
+            if self.run_log is not None:
+                self.run_log(_round_record(task, current, round_, judged))
             if judged.sufficient or judged.refinement is None:
                 break
             current = judged.refinement  # the back-edge: re-query
         return kept
+
+
+def _round_record(
+    task: SubTask, current: SubTask, round_: int, judged: Judgement
+) -> RoundRecord:
+    """The :class:`RoundRecord` of one round of :meth:`SingleContextAgent._run_task`."""
+    refinement = judged.refinement
+    return RoundRecord(
+        purpose=task.goal,
+        round=round_,
+        goal=current.goal,
+        sources=tuple(current.sources),
+        sufficient=judged.sufficient,
+        refinement=None if refinement is None else refinement.goal,
+        committed=tuple(judged.relevant),
+        graded=dict(judged.graded),
+    )
 
 
 def make_search_agent(
@@ -452,6 +518,7 @@ def make_search_agent(
     citer: Citer | None = None,
     budget: Budget | None = None,
     pool_cap: PoolCap | None = None,
+    run_log: RunLog | None = None,
 ) -> SingleContextAgent:
     """Build a :class:`SingleContextAgent` over *sources* with smart defaults.
 
@@ -460,7 +527,8 @@ def make_search_agent(
     ``ir.retrievers()`` view. Every role defaults to its no-LLM thin-slice
     implementation, so ``make_search_agent(sources)("query")`` just works;
     inject an LLM ``formulator`` / ``evaluator`` to turn on rewriting and the
-    back-edge.
+    back-edge. Pass a ``run_log`` (any callable taking a :class:`RoundRecord`, e.g.
+    ``list.append``) to record what each round decided.
 
     A custom ``Retriever`` must return :class:`ir.SearchHit` instances (the
     ``Result`` alias): the loop stamps provenance (``hit.source``) on its
@@ -475,6 +543,7 @@ def make_search_agent(
         citer=citer or identity_citer,
         budget=budget or Budget(),
         pool_cap=pool_cap or rank_fair_cap,
+        run_log=run_log,
     )
 
 
