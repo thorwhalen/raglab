@@ -169,7 +169,7 @@ def _contents(
         selected=list(hits), candidates=list(hits), abstained=False, reason="graded"
     )
     disclosed = ir.disclose(selection, level=level, **dict(disclose_kwargs))
-    return [d.body or h.text for h, d in zip(hits, disclosed)]
+    return [d.body or h.text for h, d in zip(hits, disclosed, strict=True)]
 
 
 def make_graded_rubric_evaluator(
@@ -232,7 +232,7 @@ def make_graded_rubric_evaluator(
         hits = best_per_artifact(results)
         contents = _contents(hits, disclose_level, disclose_kwargs)
         graded: dict[str, GradedLabel] = {}
-        for hit, content in zip(hits, contents):
+        for hit, content in zip(hits, contents, strict=True):
             content = str(content)[:max_content_chars]
             shown = list(levels)
             rng.shuffle(shown)
