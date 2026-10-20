@@ -74,7 +74,9 @@ class CorpusLabeling:
     def at_least(self, level: str) -> list[str]:
         """The artifact ids labelled ``level`` or better, on the levels they were labelled on."""
         cut = self.levels.index(level)
-        return [aid for aid, g in self.labels.items() if self.levels.index(g.level) <= cut]
+        return [
+            aid for aid, g in self.labels.items() if self.levels.index(g.level) <= cut
+        ]
 
 
 def _facet_goals(facets: Mapping[str, str] | Iterable[str]) -> dict[str, str]:
@@ -82,7 +84,9 @@ def _facet_goals(facets: Mapping[str, str] | Iterable[str]) -> dict[str, str]:
     if not goals:
         raise ValueError("label_corpus needs at least one facet")
     if len(set(goals.values())) < len(goals):
-        raise ValueError(f"two facets share a goal: {goals}; give each facet its own goal")
+        raise ValueError(
+            f"two facets share a goal: {goals}; give each facet its own goal"
+        )
     return goals
 
 
@@ -123,10 +127,16 @@ def label_corpus(
     """
     goals = _facet_goals(facets)
     levels = tuple(levels)
-    named = {"coverage_level": coverage_level, **{
-        key: evaluator_kwargs.get(key, default)
-        for key, default in (("unsupported_cap", "tangential"), ("relevant_level", "uses-tools"))
-    }}
+    named = {
+        "coverage_level": coverage_level,
+        **{
+            key: evaluator_kwargs.get(key, default)
+            for key, default in (
+                ("unsupported_cap", "tangential"),
+                ("relevant_level", "uses-tools"),
+            )
+        },
+    }
     for key, value in named.items():
         if value not in levels:
             raise ValueError(
@@ -145,7 +155,11 @@ def label_corpus(
     max_rounds = (budget if budget is not None else Budget()).max_rounds
 
     def refine(task: SubTask, name: str) -> SubTask | None:
-        if reformulate is None or covered(name) >= min_covered or rounds[name] >= max_rounds:
+        if (
+            reformulate is None
+            or covered(name) >= min_covered
+            or rounds[name] >= max_rounds
+        ):
             return None  # covered, no policy, or no round left to run a new query in
         query = reformulate(goals[name], dict(seen[name]))
         if not query or query in facet_of:
@@ -188,7 +202,9 @@ def label_corpus(
     labels: dict[str, GradedLabel] = {}
     for per_facet in seen.values():
         for aid, label in per_facet.items():
-            if aid not in labels or levels.index(label.level) < levels.index(labels[aid].level):
+            if aid not in labels or levels.index(label.level) < levels.index(
+                labels[aid].level
+            ):
                 labels[aid] = label
     coverage = {
         name: FacetCoverage(
