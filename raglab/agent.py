@@ -52,6 +52,7 @@ __all__ = [
     "SubTask",
     "LowLevelQuery",
     "Judgement",
+    "GradedLabel",
     "Result",
     "Retriever",
     "Planner",
@@ -112,18 +113,40 @@ class LowLevelQuery:
 
 
 @dataclass(frozen=True)
+class GradedLabel:
+    """A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.
+
+    ``level`` is one of the evaluator's ordered levels (best first). The axes are
+    Self-RAG's: ``is_about`` (topical, ISREL), ``is_supported`` (the content
+    actually establishes it, not a lexical mention: ISSUP) and ``is_useful``
+    (ISUSE). ``evidence_quote`` is a verbatim span of the candidate's content
+    backing the level; ``facet`` names the sub-goal it was judged against.
+    """
+
+    level: str
+    is_about: bool
+    is_supported: bool
+    is_useful: bool
+    evidence_quote: str = ""
+    facet: str | None = None
+
+
+@dataclass(frozen=True)
 class Judgement:
     """An evaluator's verdict over a round's results.
 
     ``relevant`` is the kept subset; ``sufficient`` says whether to stop; a
     non-``None`` ``refinement`` is the **back-edge** — the next sub-task to
     re-query with. The pass-through default returns ``sufficient=True`` and no
-    refinement (no loop).
+    refinement (no loop). ``graded`` is optional and additive: a graded
+    evaluator maps each judged ``artifact_id`` to its :class:`GradedLabel`;
+    binary evaluators leave it empty.
     """
 
     relevant: Sequence[Result]
     sufficient: bool
     refinement: SubTask | None = None
+    graded: Mapping[str, GradedLabel] = field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- #
