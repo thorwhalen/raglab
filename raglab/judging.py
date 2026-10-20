@@ -27,6 +27,8 @@ fails on a candidate leaves it ungraded rather than guessing.
 from __future__ import annotations
 
 import json
+import logging
+import math
 import random
 import re
 from collections.abc import Callable, Mapping, Sequence
@@ -90,6 +92,11 @@ Refine = Callable[[SubTask, Mapping[str, GradedLabel]], "SubTask | None"]
 #: Truncate each candidate's disclosed content to this many chars in the prompt.
 DFLT_MAX_CONTENT_CHARS = 4000
 
+#: A shorter evidence quote ("a", "the") would be found in almost any content.
+DFLT_MIN_QUOTE_CHARS = 8
+
+_log = logging.getLogger(__name__)
+
 
 def _normalize_space(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().casefold()
@@ -103,8 +110,14 @@ def apply_gates(
     unsupported_cap: str = "tangential",
     require_evidence_quote: bool = True,
     calibration_offset: float | None = None,
+    min_quote_chars: int = DFLT_MIN_QUOTE_CHARS,
 ) -> GradedLabel:
     """The level a judge's proposal is allowed, after calibration and the gates.
+
+    The quote must be at least ``min_quote_chars`` long and found in ``content``,
+    ignoring case and runs of whitespace (judges re-case and re-wrap what they
+    copy). ``calibration_offset`` is in levels, rounded half up, so a shift is
+    the same at every level.
 
     >>> label = GradedLabel('core', True, False, True, 'a DAG of tasks')
     >>> apply_gates(label, 'Runs a DAG of tasks asynchronously.').level
@@ -118,9 +131,9 @@ def apply_gates(
     cap = levels.index(unsupported_cap)
     rank = levels.index(proposed.level)
     if calibration_offset:
-        rank = min(max(round(rank + calibration_offset), 0), len(levels) - 1)
+        rank = min(max(math.floor(rank + calibration_offset + 0.5), 0), len(levels) - 1)
     quote = _normalize_space(proposed.evidence_quote)
-    quoted = bool(quote) and quote in _normalize_space(content)
+    quoted = len(quote) >= min_quote_chars and quote in _normalize_space(content)
     if rank < cap and (
         not proposed.is_supported or (require_evidence_quote and not quoted)
     ):
@@ -142,9 +155,10 @@ def _parse_label(out: Mapping[str, Any] | str, levels: Sequence[str]) -> GradedL
         if not match:
             raise ValueError(f"no JSON object in the judge's reply: {out[:200]!r}")
         out = json.loads(match.group(0))
-    level = str(out.get("level", "")).strip().lower()
-    if level not in levels:
-        raise ValueError(f"level {level!r} is not one of {list(levels)}")
+    by_name = {lv.casefold(): lv for lv in levels}
+    level = by_name.get(str(out.get("level", "")).strip().casefold())
+    if level is None:
+        raise ValueError(f"level {out.get('level')!r} is not one of {list(levels)}")
 
     def flag(key: str) -> bool:
         value = out.get(key)
@@ -182,6 +196,7 @@ def make_graded_rubric_evaluator(
     require_evidence_quote: bool = True,
     unsupported_cap: str = "tangential",
     calibration_offset: float | None = None,
+    min_quote_chars: int = DFLT_MIN_QUOTE_CHARS,
     relevant_level: str = "uses-tools",
     refine: Refine | None = None,
     rng: random.Random | None = None,
@@ -200,17 +215,23 @@ def make_graded_rubric_evaluator(
             content through :func:`ir.disclose` at that level (``store=`` /
             ``loader=`` go in ``disclose_kwargs``); a candidate with nothing to
             load is judged on its snippet.
-        require_evidence_quote, unsupported_cap, calibration_offset: the gates,
-            see :func:`apply_gates`.
+        require_evidence_quote, unsupported_cap, calibration_offset,
+            min_quote_chars: the gates, see :func:`apply_gates`.
         relevant_level: the lowest level kept in ``Judgement.relevant``.
         refine: the back-edge policy ``(task, graded) -> SubTask | None``; by
             default none, so the loop stops after one round.
         rng: the source of the per-call level order (seed it for reproducible
             prompts).
 
-    Every candidate of the round's pool is judged once per round (one judge call
-    each, deduped per artifact): this evaluator is for labelling a pool, not for
-    cheap filtering.
+    Every candidate is judged once per goal: one judge call per (source,
+    artifact) the first time it appears in a pool for that goal, its label
+    remembered for later rounds, so a kept hit is not re-judged (nor lost to a
+    later failing call). ``Judgement.graded`` is keyed by ``artifact_id``; an id
+    found in several sources carries its best label. A reply that does not parse
+    leaves the candidate ungraded (logged); when every judge call of a round
+    raises, the first error is re-raised rather than returning an empty,
+    "sufficient" round. This evaluator is for labelling a pool, not for cheap
+    filtering.
     """
     levels = tuple(levels)
     for name, value in (("unsupported_cap", unsupported_cap), ("relevant_level", relevant_level)):
@@ -220,6 +241,7 @@ def make_graded_rubric_evaluator(
     rng = rng if rng is not None else random.Random()
     disclose_kwargs = dict(disclose_kwargs or {})
     state: dict[str, GradedJudge] = {}
+    memo: dict[tuple[str, str | None, str], GradedLabel] = {}
 
     def ask(**kwargs: Any) -> Mapping[str, Any] | str:
         if judge is not None:
@@ -230,37 +252,55 @@ def make_graded_rubric_evaluator(
 
     def evaluator(task: SubTask, results: Sequence[Result]) -> Judgement:
         hits = best_per_artifact(results)
-        contents = _contents(hits, disclose_level, disclose_kwargs)
-        graded: dict[str, GradedLabel] = {}
-        for hit, content in zip(hits, contents, strict=True):
+        todo = [h for h in hits if (task.goal, h.source, h.artifact_id) not in memo]
+        contents = _contents(todo, disclose_level, disclose_kwargs) if todo else []
+        errors: list[Exception] = []
+        for hit, content in zip(todo, contents, strict=True):
             content = str(content)[:max_content_chars]
             shown = list(levels)
             rng.shuffle(shown)
             try:
-                proposed = _parse_label(
-                    ask(
-                        goal=task.goal,
-                        artifact_id=hit.artifact_id,
-                        content=content,
-                        levels="\n".join(f"- {lv}" for lv in shown),
-                        rubric=rubric,
-                    ),
-                    levels,
+                reply = ask(
+                    goal=task.goal,
+                    artifact_id=hit.artifact_id,
+                    content=content,
+                    levels="\n".join(f"- {lv}" for lv in shown),
+                    rubric=rubric,
                 )
-            except Exception:
+            except Exception as error:  # the judge itself failed: auth, network, limits
+                _log.warning("judge failed on %s: %r", hit.artifact_id, error)
+                errors.append(error)
+                continue
+            try:
+                proposed = _parse_label(reply, levels)
+            except (ValueError, TypeError, AttributeError) as error:
+                _log.warning("unusable judge reply on %s: %s", hit.artifact_id, error)
                 continue  # left ungraded: never guess a level
-            graded[hit.artifact_id] = apply_gates(
+            memo[(task.goal, hit.source, hit.artifact_id)] = apply_gates(
                 proposed,
                 content,
                 levels=levels,
                 unsupported_cap=unsupported_cap,
                 require_evidence_quote=require_evidence_quote,
                 calibration_offset=calibration_offset,
+                min_quote_chars=min_quote_chars,
             )
+        if todo and len(errors) == len(todo):
+            raise errors[0]
+        labels = {
+            (h.source, h.artifact_id): memo[key]
+            for h in hits
+            if (key := (task.goal, h.source, h.artifact_id)) in memo
+        }
+        graded: dict[str, GradedLabel] = {}
+        for (_, aid), label in labels.items():
+            if aid not in graded or levels.index(label.level) < levels.index(graded[aid].level):
+                graded[aid] = label
         relevant = [
             h
             for h in hits
-            if h.artifact_id in graded and levels.index(graded[h.artifact_id].level) <= keep
+            if (label := labels.get((h.source, h.artifact_id))) is not None
+            and levels.index(label.level) <= keep
         ]
         refinement = refine(task, graded) if refine is not None else None
         return Judgement(

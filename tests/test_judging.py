@@ -159,3 +159,62 @@ def test_unknown_level_names_are_refused():
 
     with pytest.raises(ValueError, match="relevant_level"):
         make_graded_rubric_evaluator(judge=_judge({}), relevant_level="great")
+
+
+def test_the_same_id_in_two_sources_is_judged_per_source():
+    a = SearchHit("x", "k", 1.0, "A graph library for nodes.", {}, source="A")
+    b = SearchHit("x", "k", 1.0, "An audio decoder.", {}, source="B")
+
+    def judge(**kw):
+        if "graph" in kw["content"]:
+            return _reply("core", quote="A graph library")
+        return _reply("none")
+
+    judged = make_graded_rubric_evaluator(judge=judge)(TASK, [a, b])
+    assert [h.source for h in judged.relevant] == ["A"]
+    assert judged.graded["x"].level == "core"  # the best label across sources
+
+
+def test_custom_levels_match_whatever_their_case():
+    judge = _judge({"graphy": _reply("core", quote="A graph library")})
+    ev = make_graded_rubric_evaluator(
+        judge=judge, levels=("Core", "Tangential", "None"),
+        unsupported_cap="Tangential", relevant_level="Core",
+    )
+    assert ev(TASK, POOL[:1]).graded["graphy"].level == "Core"
+
+
+def test_a_judge_that_fails_on_every_candidate_raises():
+    import pytest
+
+    judge = _judge({h.artifact_id: RuntimeError("no key") for h in POOL})
+    with pytest.raises(RuntimeError, match="no key"):
+        make_graded_rubric_evaluator(judge=judge)(TASK, POOL)
+
+
+def test_a_candidate_is_judged_once_per_goal_and_its_label_kept():
+    judge = _judge({"graphy": _reply("core", quote="A graph library")})
+    ev = make_graded_rubric_evaluator(judge=judge)
+    ev(TASK, POOL[:1])
+    judge_down = ev(TASK, POOL[:1])  # no new call: the label is remembered
+    assert len(judge.calls) == 1
+    assert [h.artifact_id for h in judge_down.relevant] == ["graphy"]
+
+
+def test_a_half_level_offset_shifts_every_level_alike():
+    from raglab import apply_gates
+
+    content = "A graph library."
+    shifted = [
+        apply_gates(GradedLabel(lv, True, True, True, "graph library"), content,
+                    calibration_offset=0.5).level
+        for lv in DEFAULT_LEVELS[:-1]
+    ]
+    assert shifted == list(DEFAULT_LEVELS[1:])
+
+
+def test_a_one_word_quote_is_not_evidence():
+    from raglab import apply_gates
+
+    label = GradedLabel("core", True, True, True, "a")
+    assert apply_gates(label, "A graph library.").level == "tangential"
