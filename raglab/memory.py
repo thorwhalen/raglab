@@ -29,6 +29,7 @@ observed need.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import time
 from collections.abc import Callable, Iterator, Mapping, MutableMapping, Sequence
@@ -41,6 +42,21 @@ Embedder = Callable[[str], Sequence[float]]
 
 DFLT_HALF_LIFE_SECONDS = 30 * 24 * 3600.0
 DFLT_MIN_RELEVANCE = 0.8
+
+
+def _json_default(obj: Any) -> Any:
+    if hasattr(obj, "tolist"):  # numpy scalars and arrays
+        return obj.tolist()
+    return str(obj)
+
+
+def json_clean(obj: Any) -> Any:
+    """``obj`` as plain JSON types (numpy values via ``tolist``, the rest via ``str``).
+
+    >>> json_clean({"p": (1, 2), "x": {1}})
+    {'p': [1, 2], 'x': '{1}'}
+    """
+    return json.loads(json.dumps(obj, default=_json_default))
 
 
 def normalize_purpose(statement: str) -> str:
@@ -198,11 +214,18 @@ class PurposeStore(MutableMapping):
         return [unit.to_result() for unit in self.recall(purpose)]
 
     def __call__(self, record: RoundRecord) -> None:
-        """Journal a round's committed hits under its purpose (the RunLog sink)."""
-        if record.committed:
+        """Journal a round's committed hits under its purpose (the RunLog sink).
+
+        The recall round (``round < 0``) is not journaled: its hits are already
+        here, and re-writing them would reset their recency and copy a related
+        purpose's units into this one.
+        """
+        if record.round >= 0 and record.committed:
             now = self.clock()
             units = [
-                ExtractionUnit(purpose=record.purpose, hit=h.to_dict(), recorded_at=now)
+                ExtractionUnit(
+                    purpose=record.purpose, hit=json_clean(h.to_dict()), recorded_at=now
+                )
                 for h in record.committed
             ]
             self.write(record.purpose, units)
@@ -210,14 +233,24 @@ class PurposeStore(MutableMapping):
     # --- MutableMapping ---------------------------------------------------- #
 
     def __getitem__(self, purpose: str) -> list[ExtractionUnit]:
-        if units := self.recall(purpose):
+        """The related-purpose read; raises ``KeyError`` only if it finds nothing and
+        ``purpose`` itself is not stored (so ``store[p] = []; store[p] == []``)."""
+        units = self.recall(purpose)
+        if units or purpose in self:
             return units
         raise KeyError(purpose)
+
+    def __contains__(self, purpose: object) -> bool:
+        """Exact: is this purpose (normalized) stored? Unlike ``store[purpose]``,
+        related purposes do not count, so ``in``, ``iter`` and ``len`` agree."""
+        return isinstance(purpose, str) and purpose_id(purpose) in self.backend
 
     def __setitem__(self, purpose: str, units: Sequence[ExtractionUnit]) -> None:
         self._put(purpose, list(units))
 
     def __delitem__(self, purpose: str) -> None:
+        if purpose not in self:
+            raise KeyError(purpose)
         del self.backend[purpose_id(purpose)]
 
     def __iter__(self) -> Iterator[str]:
@@ -256,10 +289,14 @@ class PurposeStore(MutableMapping):
         query = self._embed(purpose)
         if query is None:
             return related
-        for other, rec in self.backend.items():
-            if other != pid and rec.get("embedding") is not None:
-                relevance = _cosine(query, rec["embedding"])
-                if relevance >= self.min_relevance:
-                    related.append((relevance, other))
+        for other, rec in list(self.backend.items()):
+            if other == pid:
+                continue
+            if rec.get("embedding") is None:  # stored before there was an embedder
+                rec = {**rec, "embedding": self._embed(rec["purpose"])}
+                self.backend[other] = rec
+            relevance = _cosine(query, rec["embedding"])
+            if relevance >= self.min_relevance:
+                related.append((relevance, other))
         return related
 

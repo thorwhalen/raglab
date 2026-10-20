@@ -108,3 +108,45 @@ def test_no_memory_leaves_the_agent_unchanged():
     assert make_search_agent({"s": _fake_retriever(hits)}).memory is None
     plain = make_search_agent({"s": _fake_retriever(hits)})("q")
     assert plain == make_search_agent({"s": _fake_retriever(hits)}, memory=PurposeStore())("q")
+
+
+def test_recall_round_is_not_journaled_back():
+    now = [1.0]
+    store = PurposeStore(clock=lambda: now[0])
+    agent = make_search_agent({"s": _fake_retriever(_hits(("a", 0.9)))}, memory=store)
+    agent("q")
+    now[0] = 2.0
+    agent("q")  # recalled and sufficient: recency must not be refreshed
+    (unit,) = store["q"]
+    assert unit.recorded_at == 1.0
+
+
+def test_numpy_metadata_is_stored_json_clean():
+    import numpy as np
+
+    hit = SearchHit("a", "k", np.float32(0.5), "t", {"n": np.int64(3), "p": (1, 2)}, "s")
+    backend = {}
+    store = PurposeStore(backend=backend)
+    make_search_agent({"s": _fake_retriever([hit])}, memory=store)("q")
+    json.dumps(backend)
+    assert backend[purpose_id("q")]["units"][0]["hit"]["metadata"] == {"n": 3, "p": [1, 2]}
+
+
+def test_embedder_added_later_backfills():
+    store = PurposeStore()
+    store.write("invoices 2023", [ExtractionUnit("p", _hits(("a", 1.0), source="s")[0].to_dict(), 0.0)])
+    store.embedder = _bag_embedder
+    assert [u.hit["artifact_id"] for u in store["2023 invoices"]] == ["a"]
+
+
+def test_mapping_membership_is_exact():
+    store = PurposeStore(embedder=_bag_embedder)
+    store["invoices 2023"] = []
+    assert "invoices 2023" in store and store["invoices 2023"] == []
+    assert "2023 invoices" not in store  # related, but not stored
+    assert len(store) == 1 and list(store) == ["invoices 2023"]
+    del store["invoices 2023"]
+    import pytest
+
+    with pytest.raises(KeyError, match="nope"):
+        del store["nope"]
