@@ -1,4 +1,4 @@
-> built 2026-10-20 11:55 UTC from a707b74 (main) · raglab 0.2.9. Details: build_info.json
+> built 2026-10-20 12:00 UTC from 21babcc (main) · raglab 0.2.10. Details: build_info.json
 
 # index.html.md
 
@@ -467,7 +467,7 @@ Produce the final ordering over the (cross-source) merged results.
 A retrieved item — ir’s `SearchHit` (ir_09’s `Result`):
 a *pointer + snippet* (`text`) with a `score` and `metadata`.
 
-### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None)
+### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None, memory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -602,7 +602,7 @@ A parametrized [`rrf_reranker()`](_autosummary/raglab.agent.html.md#raglab.agent
 * **Return type:**
   [`Reranker`](_autosummary/raglab.agent.html.md#raglab.agent.Reranker)
 
-### raglab.agent.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None)
+### raglab.agent.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None, memory=None)
 
 Build a [`SingleContextAgent`](_autosummary/raglab.agent.html.md#raglab.agent.SingleContextAgent) over *sources* with smart defaults.
 
@@ -612,7 +612,8 @@ Build a [`SingleContextAgent`](_autosummary/raglab.agent.html.md#raglab.agent.Si
 implementation, so `make_search_agent(sources)("query")` just works;
 inject an LLM `formulator` / `evaluator` to turn on rewriting and the
 back-edge. Pass a `run_log` (any callable taking a [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord), e.g.
-`list.append`) to record what each round decided.
+`list.append`) to record what each round decided, and a `memory` (e.g. a
+[`raglab.memory.PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore)) to journal what runs keep and reuse it.
 
 A custom `Retriever` must return `ir.SearchHit` instances (the
 `Result` alias): the loop stamps provenance (`hit.source`) on its
@@ -746,23 +747,26 @@ Inject an LLM `formulator` (query rewrite/HyDE) and `evaluator` (sufficiency
 
 ### Classes
 
-| [`Query`](_autosummary/raglab.html.md#raglab.Query)(text[, constraints])                      | A user intent: free text plus optional structured constraints.                                            |
-|--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`SubTask`](_autosummary/raglab.html.md#raglab.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.                                |
-| [`LowLevelQuery`](_autosummary/raglab.html.md#raglab.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                                                    |
-| [`Judgement`](_autosummary/raglab.html.md#raglab.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                                            |
-| [`GradedLabel`](_autosummary/raglab.html.md#raglab.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.                          |
-| [`Result`](_autosummary/raglab.html.md#raglab.Result)                                          |                                                                                                           |
-| [`Planner`](_autosummary/raglab.html.md#raglab.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                                             |
-| [`Formulator`](_autosummary/raglab.html.md#raglab.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                                             |
-| [`Evaluator`](_autosummary/raglab.html.md#raglab.Evaluator)(\*args, \*\*kwargs)                   | Judge relevance + sufficiency; optionally emit a refinement (back-edge).                                  |
-| [`Reranker`](_autosummary/raglab.html.md#raglab.Reranker)(\*args, \*\*kwargs)                    | Produce the final ordering over the (cross-source) merged results.                                        |
-| [`Citer`](_autosummary/raglab.html.md#raglab.Citer)(\*args, \*\*kwargs)                       | Confirm/annotate that each result supports its use (identity by default).                                 |
-| [`Budget`](_autosummary/raglab.html.md#raglab.Budget)([max_rounds, max_sources_per_task, ...]) | Loop bounds: the safety net under the (harder) sufficiency decision.                                      |
-| [`PoolCap`](_autosummary/raglab.html.md#raglab.PoolCap)(\*args, \*\*kwargs)                     | Bound the pool the evaluator sees to at most `limit` results.                                             |
-| [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord)(purpose, round, goal, sources, ...) | What one round of the loop decided: the run-log's unit (raglab#6).                                        |
-| [`RunLog`](_autosummary/raglab.html.md#raglab.RunLog)(\*args, \*\*kwargs)                      | A sink for the loop's [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) s, one call per round. |
-| [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextAgent)(sources[, planner, ...])     | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).                                |
+| [`Query`](_autosummary/raglab.html.md#raglab.Query)(text[, constraints])                       | A user intent: free text plus optional structured constraints.                                                    |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
+| [`SubTask`](_autosummary/raglab.html.md#raglab.SubTask)(goal, sources)                           | A planner's unit of work: a sub-goal bound to a set of registered sources.                                        |
+| [`LowLevelQuery`](_autosummary/raglab.html.md#raglab.LowLevelQuery)(source, query[, params])           | One concrete query against one source.                                                                            |
+| [`Judgement`](_autosummary/raglab.html.md#raglab.Judgement)(relevant, sufficient[, ...])           | An evaluator's verdict over a round's results.                                                                    |
+| [`GradedLabel`](_autosummary/raglab.html.md#raglab.GradedLabel)(level, is_about, is_supported, ...)  | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.                                  |
+| [`Result`](_autosummary/raglab.html.md#raglab.Result)                                           |                                                                                                                   |
+| [`Planner`](_autosummary/raglab.html.md#raglab.Planner)(\*args, \*\*kwargs)                      | Decompose a query into sub-tasks and select sources for each.                                                     |
+| [`Formulator`](_autosummary/raglab.html.md#raglab.Formulator)(\*args, \*\*kwargs)                   | Turn a sub-task + one source into concrete low-level queries.                                                     |
+| [`Evaluator`](_autosummary/raglab.html.md#raglab.Evaluator)(\*args, \*\*kwargs)                    | Judge relevance + sufficiency; optionally emit a refinement (back-edge).                                          |
+| [`Reranker`](_autosummary/raglab.html.md#raglab.Reranker)(\*args, \*\*kwargs)                     | Produce the final ordering over the (cross-source) merged results.                                                |
+| [`Citer`](_autosummary/raglab.html.md#raglab.Citer)(\*args, \*\*kwargs)                        | Confirm/annotate that each result supports its use (identity by default).                                         |
+| [`Budget`](_autosummary/raglab.html.md#raglab.Budget)([max_rounds, max_sources_per_task, ...])  | Loop bounds: the safety net under the (harder) sufficiency decision.                                              |
+| [`PoolCap`](_autosummary/raglab.html.md#raglab.PoolCap)(\*args, \*\*kwargs)                      | Bound the pool the evaluator sees to at most `limit` results.                                                     |
+| [`Memory`](_autosummary/raglab.html.md#raglab.Memory)(\*args, \*\*kwargs)                       | Cross-run memory: recall hits for a purpose; take [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) s. |
+| [`PurposeStore`](_autosummary/raglab.html.md#raglab.PurposeStore)([backend, embedder, ...])           | `MutableMapping[purpose, list[ExtractionUnit]]` over an injected `backend`.                                       |
+| [`ExtractionUnit`](_autosummary/raglab.html.md#raglab.ExtractionUnit)(purpose, hit, recorded_at[, ...]) | One piece of evidence a run committed to, for one purpose.                                                        |
+| [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord)(purpose, round, goal, sources, ...)  | What one round of the loop decided: the run-log's unit (raglab#6).                                                |
+| [`RunLog`](_autosummary/raglab.html.md#raglab.RunLog)(\*args, \*\*kwargs)                       | A sink for the loop's [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) s, one call per round.         |
+| [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextAgent)(sources[, planner, ...])      | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).                                        |
 
 ### *class* raglab.Budget(max_rounds=3, max_sources_per_task=4, max_results_per_task=50)
 
@@ -781,6 +785,45 @@ Confirm/annotate that each result supports its use (identity by default).
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
 
 Judge relevance + sufficiency; optionally emit a refinement (back-edge).
+
+### *class* raglab.ExtractionUnit(purpose, hit, recorded_at, importance=1.0, confidence=None, level='raw', supersedes=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One piece of evidence a run committed to, for one purpose.
+
+`hit` is the `SearchHit.to_dict()` of the kept hit: provenance
+(`source`, `artifact_id`) and its raw magnitude, never a fused score.
+`level` is the consolidation level (`"raw"` until CONSOLIDATE exists);
+`supersedes` names the artifact id a later unit replaces (for SUPERSEDE).
+
+#### *classmethod* from_dict(d)
+
+Inverse of [`to_dict()`](_autosummary/raglab.html.md#raglab.ExtractionUnit.to_dict).
+
+* **Return type:**
+  [`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)
+
+#### *property* identity *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+ir’s identity of the artifact this points at.
+
+* **Type:**
+  `(source, artifact_id)`
+
+#### to_dict()
+
+JSON-clean form.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+#### to_result()
+
+The `SearchHit` this unit was made from.
+
+* **Return type:**
+  `SearchHit`
 
 ### *class* raglab.Formulator(\*args, \*\*kwargs)
 
@@ -823,6 +866,16 @@ One concrete query against one source.
 are per-call retriever overrides (e.g. `mode` / `filter` / `k` for an
 ir corpus). A formulator turns a [`SubTask`](_autosummary/raglab.html.md#raglab.SubTask) into these.
 
+### *class* raglab.Memory(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+Cross-run memory: recall hits for a purpose; take [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) s.
+
+Opt-in (`SingleContextAgent.memory` defaults to `None`). Before sweeping a
+sub-task, the agent offers the recalled hits to the evaluator; if they are
+sufficient, it does not sweep. [`raglab.memory.PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore) is one.
+
 ### *class* raglab.Planner(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -839,6 +892,54 @@ A governor decision (which hits survive the budget), injected like every other
 role so a strategy can be swapped without touching the loop. It must return
 hits **unchanged** — never re-scored — because the pool keeps raw per-source
 magnitudes until the fan-in reranker.
+
+### *class* raglab.PurposeStore(backend=dict(), embedder=None, write_strategy=<function upsert_write>, read_strategy=<function make_relevance_recency_reader.<locals>.read>, min_relevance=0.8, clock=<built-in function time>)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`MutableMapping[purpose, list[ExtractionUnit]]` over an injected `backend`.
+
+`backend` maps `purpose_id()` to a JSON-clean record
+`{"purpose", "embedding", "units"}`: any `MutableMapping` (a dict, a dol
+store of JSON files, …). `store[purpose]` recalls from every *related*
+purpose (the same one, or one whose embedding is at least `min_relevance`
+cosine-similar); `store[purpose] = units` replaces that purpose’s units.
+Calling the store with a [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) journals what the round kept.
+
+#### clock()
+
+time() -> floating-point number
+
+Return the current time in seconds since the Epoch.
+Fractions of a second may be present if the system clock provides them.
+
+#### recall(purpose)
+
+The units of every purpose related to `purpose`, ranked by `read_strategy`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)]
+
+#### recall_hits(purpose)
+
+[`recall()`](_autosummary/raglab.html.md#raglab.PurposeStore.recall) as `SearchHit` s, ready to seed the agent’s pool.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`SearchHit`]
+
+#### write(purpose, units)
+
+Merge `units` into `purpose`’s, with the `write_strategy`.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### write_strategy(new)
+
+ADD new artifacts; UPDATE (replace with the newer unit) those already kept.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)]
 
 ### *class* raglab.Query(text, constraints=dict())
 
@@ -867,7 +968,8 @@ per-run observability (the run-log) and cross-run memory (a purpose store)
 both consume. `purpose` is the sub-task’s original goal; `goal` is what this
 round actually searched (a refinement, from round 1 on). `committed` holds the
 hits the evaluator kept, with their **raw** per-source magnitudes: the pool never
-carries fused scores, so neither does the record.
+carries fused scores, so neither does the record. Round `-1` is the recall
+round of an agent with a `memory`: its pool was recalled, not swept.
 
 #### to_dict()
 
@@ -885,7 +987,7 @@ A sink for the loop’s [`RoundRecord`](_autosummary/raglab.html.md#raglab.Round
 Opt-in (the agent’s `run_log` defaults to `None`: nothing is recorded).
 `list.append` is one: `log = []; make_search_agent(sources, run_log=log.append)`.
 
-### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None)
+### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None, memory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -1155,7 +1257,7 @@ A parametrized [`rrf_reranker()`](_autosummary/raglab.html.md#raglab.rrf_reranke
 * **Return type:**
   [`Reranker`](_autosummary/raglab.agent.html.md#raglab.agent.Reranker)
 
-### raglab.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None)
+### raglab.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None, memory=None)
 
 Build a [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextAgent) over *sources* with smart defaults.
 
@@ -1165,7 +1267,8 @@ Build a [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextA
 implementation, so `make_search_agent(sources)("query")` just works;
 inject an LLM `formulator` / `evaluator` to turn on rewriting and the
 back-edge. Pass a `run_log` (any callable taking a [`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord), e.g.
-`list.append`) to record what each round decided.
+`list.append`) to record what each round decided, and a `memory` (e.g. a
+[`raglab.memory.PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore)) to journal what runs keep and reuse it.
 
 A custom `Retriever` must return `ir.SearchHit` instances (the
 `Result` alias): the loop stamps provenance (`hit.source`) on its
@@ -1250,6 +1353,7 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 |--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
 | [`judging`](_autosummary/raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
 | [`llm`](_autosummary/raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
+| [`memory`](_autosummary/raglab.memory.html.md#module-raglab.memory)   | Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).       |
 | [`recipes`](_autosummary/raglab.recipes.html.md#module-raglab.recipes) | Recipes: whole workflows composed from raglab's roles, ready to call.                     |
 
 
@@ -1498,6 +1602,210 @@ already falls back to identity on any failure, so the emitted list is never
 empty — a formulator must never make retrieval worse than the raw sub-goal.
 
 
+# _autosummary/raglab.memory.html.md
+
+# raglab.memory
+
+Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).
+
+The retrieval index is purpose-free by design; the search agent is the one layer that
+sees *purpose* (the sub-task goal, the refinement chain, the evaluator’s verdicts).
+Without memory, everything a run learned dies when it returns. A [`PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore)
+keeps the precipitate: the hits each run committed to, as [`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit) s
+keyed by purpose, carrying their provenance (`(source, artifact_id)` plus the whole
+`SearchHit.to_dict()`, raw magnitudes only).
+
+It is a [`RunLog`](_autosummary/raglab.html.md#raglab.RunLog) sink (writes come from the run-log’s
+[`RoundRecord`](_autosummary/raglab.html.md#raglab.RoundRecord) s, the one shared record shape) and a
+[`Memory`](_autosummary/raglab.html.md#raglab.Memory) the agent reads from before sweeping:
+
+```default
+store = PurposeStore()
+agent = make_search_agent(sources, memory=store)
+agent("invoices from 2023")  # sweeps, journals what it kept
+agent("invoices from 2023")  # recalls those hits; sweeps only if not sufficient
+```
+
+Progressive disclosure: `store[purpose]` is the related-purpose read. With no
+`embedder` only the same purpose (normalized text) is related; inject one
+(`str -> vector`, e.g. a vd/ir embedder) and similar purposes share their findings.
+
+The four verbs of the design (report 14) are injected strategies; stage 0 ships two
+(`write_strategy`: ADD, or UPDATE an artifact already kept; `read_strategy`:
+relevance x importance x recency). CONSOLIDATE and DECAY are follow-ups, gated on
+observed need.
+
+### Functions
+
+| [`json_clean`](_autosummary/raglab.memory.html.md#raglab.memory.json_clean)(obj)                          | `obj` as plain JSON types (numpy values via `tolist`, the rest via `str`).                                         |
+|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| [`make_relevance_recency_reader`](_autosummary/raglab.memory.html.md#raglab.memory.make_relevance_recency_reader)(\*[, ...]) | A [`ReadStrategy`](_autosummary/raglab.memory.html.md#raglab.memory.ReadStrategy) scoring `relevance**alpha * importance * recency`. |
+| [`normalize_purpose`](_autosummary/raglab.memory.html.md#raglab.memory.normalize_purpose)(statement)             | The canonical text of a purpose: case-folded, whitespace collapsed.                                                |
+| [`purpose_id`](_autosummary/raglab.memory.html.md#raglab.memory.purpose_id)(statement)                    | Content-hash id of a purpose (of its [`normalize_purpose()`](_autosummary/raglab.memory.html.md#raglab.memory.normalize_purpose) text).   |
+| `relevance_recency_reader`(candidates, \*, now)                                           |                                                                                                                    |
+| [`upsert_write`](_autosummary/raglab.memory.html.md#raglab.memory.upsert_write)(existing, new)              | ADD new artifacts; UPDATE (replace with the newer unit) those already kept.                                        |
+
+### Classes
+
+| [`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)(purpose, hit, recorded_at[, ...])   | One piece of evidence a run committed to, for one purpose.                       |
+|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`PurposeStore`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore)([backend, embedder, ...])             | `MutableMapping[purpose, list[ExtractionUnit]]` over an injected `backend`.      |
+| [`ReadStrategy`](_autosummary/raglab.memory.html.md#raglab.memory.ReadStrategy)(\*args, \*\*kwargs)                   | Rank `(relevance, unit)` candidates (from related purposes) into what to recall. |
+| [`WriteStrategy`](_autosummary/raglab.memory.html.md#raglab.memory.WriteStrategy)(\*args, \*\*kwargs)                  | Merge `new` units into a purpose's `existing` ones (ADD/UPDATE/SUPERSEDE/NOOP).  |
+
+### *class* raglab.memory.ExtractionUnit(purpose, hit, recorded_at, importance=1.0, confidence=None, level='raw', supersedes=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One piece of evidence a run committed to, for one purpose.
+
+`hit` is the `SearchHit.to_dict()` of the kept hit: provenance
+(`source`, `artifact_id`) and its raw magnitude, never a fused score.
+`level` is the consolidation level (`"raw"` until CONSOLIDATE exists);
+`supersedes` names the artifact id a later unit replaces (for SUPERSEDE).
+
+#### *classmethod* from_dict(d)
+
+Inverse of [`to_dict()`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit.to_dict).
+
+* **Return type:**
+  [`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)
+
+#### *property* identity *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+ir’s identity of the artifact this points at.
+
+* **Type:**
+  `(source, artifact_id)`
+
+#### to_dict()
+
+JSON-clean form.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+#### to_result()
+
+The `SearchHit` this unit was made from.
+
+* **Return type:**
+  `SearchHit`
+
+### *class* raglab.memory.PurposeStore(backend=dict(), embedder=None, write_strategy=<function upsert_write>, read_strategy=<function make_relevance_recency_reader.<locals>.read>, min_relevance=0.8, clock=<built-in function time>)
+
+Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
+
+`MutableMapping[purpose, list[ExtractionUnit]]` over an injected `backend`.
+
+`backend` maps [`purpose_id()`](_autosummary/raglab.memory.html.md#raglab.memory.purpose_id) to a JSON-clean record
+`{"purpose", "embedding", "units"}`: any `MutableMapping` (a dict, a dol
+store of JSON files, …). `store[purpose]` recalls from every *related*
+purpose (the same one, or one whose embedding is at least `min_relevance`
+cosine-similar); `store[purpose] = units` replaces that purpose’s units.
+Calling the store with a `RoundRecord` journals what the round kept.
+
+#### clock()
+
+time() -> floating-point number
+
+Return the current time in seconds since the Epoch.
+Fractions of a second may be present if the system clock provides them.
+
+#### recall(purpose)
+
+The units of every purpose related to `purpose`, ranked by `read_strategy`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)]
+
+#### recall_hits(purpose)
+
+[`recall()`](_autosummary/raglab.memory.html.md#raglab.memory.PurposeStore.recall) as `SearchHit` s, ready to seed the agent’s pool.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`SearchHit`]
+
+#### write(purpose, units)
+
+Merge `units` into `purpose`’s, with the `write_strategy`.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### write_strategy(new)
+
+ADD new artifacts; UPDATE (replace with the newer unit) those already kept.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)]
+
+### *class* raglab.memory.ReadStrategy(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+Rank `(relevance, unit)` candidates (from related purposes) into what to recall.
+
+### *class* raglab.memory.WriteStrategy(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+Merge `new` units into a purpose’s `existing` ones (ADD/UPDATE/SUPERSEDE/NOOP).
+
+### raglab.memory.json_clean(obj)
+
+`obj` as plain JSON types (numpy values via `tolist`, the rest via `str`).
+
+```pycon
+>>> json_clean({"p": (1, 2), "x": {1}})
+{'p': [1, 2], 'x': '{1}'}
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+### raglab.memory.make_relevance_recency_reader(, half_life=2592000.0, alpha=1.0)
+
+A [`ReadStrategy`](_autosummary/raglab.memory.html.md#raglab.memory.ReadStrategy) scoring `relevance**alpha * importance * recency`.
+
+`recency` halves every `half_life` seconds. Each artifact is recalled once,
+at its best score, best first.
+
+* **Return type:**
+  [`ReadStrategy`](_autosummary/raglab.memory.html.md#raglab.memory.ReadStrategy)
+
+### raglab.memory.normalize_purpose(statement)
+
+The canonical text of a purpose: case-folded, whitespace collapsed.
+
+```pycon
+>>> normalize_purpose("  Invoices   from 2023 ")
+'invoices from 2023'
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### raglab.memory.purpose_id(statement)
+
+Content-hash id of a purpose (of its [`normalize_purpose()`](_autosummary/raglab.memory.html.md#raglab.memory.normalize_purpose) text).
+
+```pycon
+>>> purpose_id("Invoices from 2023") == purpose_id("invoices  from 2023")
+True
+```
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### raglab.memory.upsert_write(existing, new)
+
+ADD new artifacts; UPDATE (replace with the newer unit) those already kept.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`ExtractionUnit`](_autosummary/raglab.memory.html.md#raglab.memory.ExtractionUnit)]
+
+
 # _autosummary/raglab.recipes.corpus_labeling.html.md
 
 # raglab.recipes.corpus_labeling
@@ -1648,18 +1956,18 @@ Label `corpus` for each of `facets` with a graded judge; see the module.
 
 # About this build
 
-This documentation was built on **2026-10-20 11:55 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/a707b74ce803589f32068b4326e41b9ba83fb1e8"><code>a707b74</code></a> on branch <code>main</code>, for **raglab 0.2.9** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 12:00 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/21babcc839d4deeba643566895a88cf609bedb74"><code>21babcc</code></a> on branch <code>main</code>, for **raglab 0.2.10** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.2.9) is behind the latest release on PyPI (0.2.10): `pip install raglab` gives newer code than these docs describe.
+- The documented version (0.2.10) is behind the latest release on PyPI (0.2.11): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/a707b74ce803589f32068b4326e41b9ba83fb1e8"><code>a707b74ce803589f32068b4326e41b9ba83fb1e8</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/21babcc839d4deeba643566895a88cf609bedb74"><code>21babcc839d4deeba643566895a88cf609bedb74</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -1670,15 +1978,15 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39418213252">39418213252</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39418902770">39418902770</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>a707b74ce803589f32068b4326e41b9ba83fb1e8</code> (in the history of the built commit) |
+| Event commit | <code>21babcc839d4deeba643566895a88cf609bedb74</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.19  |
+| epythet  | 0.2.20  |
 | Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
@@ -1697,14 +2005,14 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.10/">0.2.10</a>, newer than the documented version (0.2.9).
+Latest release: <a href="https://pypi.org/project/raglab/0.2.11/">0.2.11</a>, newer than the documented version (0.2.10).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout a707b74ce803589f32068b4326e41b9ba83fb1e8
-pip install "epythet==0.2.19"
+git checkout 21babcc839d4deeba643566895a88cf609bedb74
+pip install "epythet==0.2.20"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

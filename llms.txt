@@ -11,10 +11,11 @@
 - [raglab.agent](_autosummary/raglab.agent.html.md): The Composable Search Agent — roles wired by a control loop (ir_09).
 - [raglab.judging](_autosummary/raglab.judging.html.md): Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8).
 - [raglab.llm](_autosummary/raglab.llm.html.md): LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).
+- [raglab.memory](_autosummary/raglab.memory.html.md): Purpose-indexed memory: what past runs found, kept per purpose (raglab#6, stage 0).
 - [raglab.recipes](_autosummary/raglab.recipes.html.md): Recipes: whole workflows composed from raglab’s roles, ready to call.
 - [raglab.recipes.corpus_labeling](_autosummary/raglab.recipes.corpus_labeling.html.md): Label a corpus against a topic, facet by facet, with a graded judge (raglab#8, part B).
 - [For AI agents](ai-agents.html.md): &#96;raglab&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-20 11:55 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-20 12:00 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

@@ -161,7 +161,7 @@ Produce the final ordering over the (cross-source) merged results.
 A retrieved item — ir’s `SearchHit` (ir_09’s `Result`):
 a *pointer + snippet* (`text`) with a `score` and `metadata`.
 
-### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None)
+### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>, run_log=None, memory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -296,7 +296,7 @@ A parametrized [`rrf_reranker()`](#raglab.agent.rrf_reranker) (per-source trust 
 * **Return type:**
   [`Reranker`](#raglab.agent.Reranker)
 
-### raglab.agent.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None)
+### raglab.agent.make_search_agent(sources, , planner=None, formulator=None, evaluator=None, reranker=None, citer=None, budget=None, pool_cap=None, run_log=None, memory=None)
 
 Build a [`SingleContextAgent`](#raglab.agent.SingleContextAgent) over *sources* with smart defaults.
 
@@ -306,7 +306,8 @@ Build a [`SingleContextAgent`](#raglab.agent.SingleContextAgent) over *sources* 
 implementation, so `make_search_agent(sources)("query")` just works;
 inject an LLM `formulator` / `evaluator` to turn on rewriting and the
 back-edge. Pass a `run_log` (any callable taking a [`RoundRecord`](raglab.html.md#raglab.RoundRecord), e.g.
-`list.append`) to record what each round decided.
+`list.append`) to record what each round decided, and a `memory` (e.g. a
+[`raglab.memory.PurposeStore`](raglab.memory.html.md#raglab.memory.PurposeStore)) to journal what runs keep and reuse it.
 
 A custom `Retriever` must return `ir.SearchHit` instances (the
 `Result` alias): the loop stamps provenance (`hit.source`) on its

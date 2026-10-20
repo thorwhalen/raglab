@@ -41,6 +41,9 @@
       Citer
       Budget
       PoolCap
+      Memory
+      PurposeStore
+      ExtractionUnit
       RoundRecord
       RunLog
       SingleContextAgent
@@ -54,4 +57,5 @@
    agent
    judging
    llm
+   memory
    recipes
