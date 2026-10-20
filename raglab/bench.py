@@ -12,6 +12,11 @@ a :class:`~raglab.memory.PurposeStore`), counting the source calls of each, and 
 * ``extractions``: units kept per purpose after the warm run (the CONSOLIDATE
   trigger is "this exceeds a threshold").
 
+Cold and warm calls interleave on the same sources, purpose by purpose, so a source
+that changes over time shows as lost recall: that is the SUPERSEDE trigger, but so is
+plain non-determinism (an approximate index, a live API). Run the benchmark on a
+deterministic snapshot to read ``recall`` as what memory alone lost.
+
 Hermetic and offline: pass any sources; nothing here calls an LLM::
 
     report = cross_run_benchmark(sources, ["invoices 2023", "2023 invoices"])
@@ -25,7 +30,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .agent import Retriever, make_search_agent
-from .memory import PurposeStore
+from .memory import PurposeStore, purpose_id
 
 AgentFactory = Callable[..., Callable[[str], list]]
 
@@ -75,18 +80,32 @@ def extraction_counts(store: PurposeStore) -> dict[str, int]:
     >>> extraction_counts(s)
     {'q': 1}
     """
-    return {rec["purpose"]: len(rec["units"]) for rec in store.backend.values()}
+    return {
+        purpose: len(store._units(purpose_id(purpose)))  # its own units, not related ones
+        for purpose in store
+    }
 
 
-def _counting(sources: Mapping[str, Retriever], calls: list) -> dict[str, Retriever]:
-    def wrap(name, retrieve):
+class _Counting(Mapping):
+    """``sources``, lazily, with each retriever call appended to ``calls``."""
+
+    def __init__(self, sources: Mapping[str, Retriever], calls: list):
+        self._sources, self._calls = sources, calls
+
+    def __getitem__(self, name: str) -> Retriever:
+        retrieve = self._sources[name]
+
         def counted(*args, **kwargs):
-            calls.append(name)
+            self._calls.append(name)
             return retrieve(*args, **kwargs)
 
         return counted
 
-    return {name: wrap(name, r) for name, r in sources.items()}
+    def __iter__(self):
+        return iter(self._sources)
+
+    def __len__(self) -> int:
+        return len(self._sources)
 
 
 def _hit_key(hit: Any) -> tuple:
@@ -108,12 +127,16 @@ def cross_run_benchmark(
     :func:`~raglab.agent.make_search_agent`); the cold agent gets ``memory=None``.
     The warm agent shares one ``memory_factory()`` store across the whole workload.
     """
+    if "memory" in agent_kwargs:
+        raise TypeError(
+            "cross_run_benchmark sets memory itself (none cold, memory_factory() warm)"
+        )
     workload = list(workload)
     cold_calls: list = []
-    cold = agent_factory(_counting(sources, cold_calls), memory=None, **agent_kwargs)
+    cold = agent_factory(_Counting(sources, cold_calls), memory=None, **agent_kwargs)
     warm_calls: list = []
     store = memory_factory()
-    warm = agent_factory(_counting(sources, warm_calls), memory=store, **agent_kwargs)
+    warm = agent_factory(_Counting(sources, warm_calls), memory=store, **agent_kwargs)
 
     rows = []
     for purpose in workload:

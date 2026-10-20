@@ -53,3 +53,19 @@ def test_source_mutation_shows_as_lost_recall():
     report = cross_run_benchmark({"s": mutating}, ["q", "q"])
     assert [r.recall for r in report.rows] == [1.0, 0.0]
     assert report.recall == 0.5
+
+
+def test_memory_is_the_benchmarks_to_set():
+    import pytest
+
+    with pytest.raises(TypeError, match="sets memory itself"):
+        cross_run_benchmark({"s": _static("a")}, ["q"], memory=PurposeStore())
+
+
+def test_extractions_count_each_purpose_own_units_even_with_an_embedder():
+    report = cross_run_benchmark(
+        {"s": _static("a")},
+        ["invoices 2023", "2023 invoices"],
+        memory_factory=lambda: PurposeStore(embedder=_bag_embedder),
+    )
+    assert report.extractions == {"invoices 2023": 1}
