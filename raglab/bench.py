@@ -81,7 +81,9 @@ def extraction_counts(store: PurposeStore) -> dict[str, int]:
     {'q': 1}
     """
     return {
-        purpose: len(store._units(purpose_id(purpose)))  # its own units, not related ones
+        purpose: len(
+            store._units(purpose_id(purpose))
+        )  # its own units, not related ones
         for purpose in store
     }
 
