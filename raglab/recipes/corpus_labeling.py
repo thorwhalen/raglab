@@ -69,17 +69,20 @@ class CorpusLabeling:
 
     labels: Mapping[str, GradedLabel] = field(default_factory=dict)
     coverage: Mapping[str, FacetCoverage] = field(default_factory=dict)
+    levels: tuple[str, ...] = DEFAULT_LEVELS
 
-    def at_least(self, level: str, *, levels: tuple[str, ...] = DEFAULT_LEVELS) -> list[str]:
-        """The artifact ids labelled ``level`` or better."""
-        cut = levels.index(level)
-        return [aid for aid, g in self.labels.items() if levels.index(g.level) <= cut]
+    def at_least(self, level: str) -> list[str]:
+        """The artifact ids labelled ``level`` or better, on the levels they were labelled on."""
+        cut = self.levels.index(level)
+        return [aid for aid, g in self.labels.items() if self.levels.index(g.level) <= cut]
 
 
 def _facet_goals(facets: Mapping[str, str] | Iterable[str]) -> dict[str, str]:
     goals = dict(facets) if isinstance(facets, Mapping) else {f: f for f in facets}
     if not goals:
         raise ValueError("label_corpus needs at least one facet")
+    if len(set(goals.values())) < len(goals):
+        raise ValueError(f"two facets share a goal: {goals}; give each facet its own goal")
     return goals
 
 
@@ -119,8 +122,17 @@ def label_corpus(
             ``calibration_offset``, ``disclose_kwargs``, ``rng``, ...).
     """
     goals = _facet_goals(facets)
-    if coverage_level not in levels:
-        raise ValueError(f"coverage_level={coverage_level!r} is not one of {list(levels)}")
+    levels = tuple(levels)
+    named = {"coverage_level": coverage_level, **{
+        key: evaluator_kwargs.get(key, default)
+        for key, default in (("unsupported_cap", "tangential"), ("relevant_level", "uses-tools"))
+    }}
+    for key, value in named.items():
+        if value not in levels:
+            raise ValueError(
+                f"{key}={value!r} is not one of {list(levels)}: with custom levels, "
+                "pass coverage_level, unsupported_cap and relevant_level from them"
+            )
     cut = levels.index(coverage_level)
     source = retriever if retriever is not None else ir.as_retriever(corpus, k=k)
     facet_of: dict[str, str] = {goal: name for name, goal in goals.items()}
@@ -130,9 +142,11 @@ def label_corpus(
     def covered(name: str) -> int:
         return sum(levels.index(g.level) <= cut for g in seen[name].values())
 
+    max_rounds = (budget if budget is not None else Budget()).max_rounds
+
     def refine(task: SubTask, name: str) -> SubTask | None:
-        if reformulate is None or covered(name) >= min_covered:
-            return None
+        if reformulate is None or covered(name) >= min_covered or rounds[name] >= max_rounds:
+            return None  # covered, no policy, or no round left to run a new query in
         query = reformulate(goals[name], dict(seen[name]))
         if not query or query in facet_of:
             return None  # nothing new to ask: stop rather than loop
@@ -186,4 +200,4 @@ def label_corpus(
         )
         for name in goals
     }
-    return CorpusLabeling(labels=labels, coverage=coverage)
+    return CorpusLabeling(labels=labels, coverage=coverage, levels=levels)

@@ -84,3 +84,34 @@ def test_a_reformulation_that_repeats_itself_stops():
 def test_facets_are_required():
     with pytest.raises(ValueError, match="at least one facet"):
         label_corpus(None, facets=[], retriever=_retriever, judge=_judge)
+
+
+def test_facets_with_one_goal_are_refused():
+    with pytest.raises(ValueError, match="share a goal"):
+        label_corpus(None, facets={"x": "same", "y": "same"}, retriever=_retriever, judge=_judge)
+
+
+def test_no_reformulation_is_asked_for_once_the_rounds_are_spent():
+    asked = []
+
+    def reformulate(goal, labels):
+        asked.append(goal)
+        return f"query {len(asked)}"
+
+    label_corpus(None, facets=["graph drawing"], retriever=_retriever, judge=_judge,
+                 reformulate=reformulate, budget=Budget(max_rounds=2))
+    assert len(asked) == 1
+
+
+def test_custom_levels_need_their_own_level_names():
+    def judge(**kw):
+        return {"level": "hi", "is_about": True, "is_supported": True, "is_useful": True,
+                "evidence_quote": kw["content"][:20]}
+
+    with pytest.raises(ValueError, match="unsupported_cap"):
+        label_corpus(None, facets=["graph data structures"], retriever=_retriever, judge=judge,
+                     levels=("hi", "lo"), coverage_level="hi")
+    result = label_corpus(None, facets=["graph data structures"], retriever=_retriever, judge=judge,
+                          levels=("hi", "lo"), coverage_level="hi",
+                          unsupported_cap="lo", relevant_level="hi")
+    assert sorted(result.at_least("hi")) == ["au", "graphy"]
