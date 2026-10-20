@@ -2,16 +2,18 @@
 
 # About this build
 
-This documentation was built on **2026-10-14 07:23 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b"><code>090127f</code></a> on branch <code>main</code>, for **raglab 0.2.6** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 11:00 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2</code></a> on branch <code>main</code>, for **raglab 0.2.7** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.2.7) is behind the latest release on PyPI (0.2.8): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b"><code>090127fd8b464752395113479a26644c850c2b1b</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -22,16 +24,16 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/38527804127">38527804127</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39411710569">39411710569</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>090127fd8b464752395113479a26644c850c2b1b</code> (in the history of the built commit) |
+| Event commit | <code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.17  |
-| Sphinx   | 9.1.0   |
+| epythet  | 0.2.19  |
+| Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
 
@@ -49,14 +51,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.6/">0.2.6</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/raglab/0.2.8/">0.2.8</a>, newer than the documented version (0.2.7).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout 090127fd8b464752395113479a26644c850c2b1b
-pip install "epythet==0.2.17"
+git checkout 3be96a2696520ddb6349174a6bda3d7e2b0c7bc2
+pip install "epythet==0.2.19"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

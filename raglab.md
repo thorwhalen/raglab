@@ -1,4 +1,4 @@
-> built 2026-10-14 07:23 UTC from 090127f (main) · raglab 0.2.6. Details: build_info.json
+> built 2026-10-20 11:00 UTC from 3be96a2 (main) · raglab 0.2.7. Details: build_info.json
 
 # index.html.md
 
@@ -40,7 +40,7 @@ import raglab
 # Register named ir corpora as the agent's sources, then search across them.
 sources = raglab.ir_sources("skills", "reports", mode="hybrid")
 agent = raglab.make_search_agent(sources)
-results = agent("how do I deploy the app")     # -> list[ir.SearchHit], ranked
+results = agent("how do I deploy the app")  # -> list[ir.SearchHit], ranked
 ```
 
 A self-contained, runnable example (build a tiny corpus, search it):
@@ -52,18 +52,18 @@ import raglab
 
 docs = {
     "deploy": "deploy the app to the server with systemd units",
-    "embed":  "embed text with a model and cache the vectors",
+    "embed": "embed text with a model and cache the vectors",
     "search": "vector similarity search with metadata filters",
 }
 corpus = ir.build(
     ir.CorpusSource.from_mapping(docs, name="t", strategy=ir.WholeText()),
     store=CorpusStore.memory(),
-    embedder="light",          # numpy-only, no model download
+    embedder="light",  # numpy-only, no model download
 )
 
 agent = raglab.make_search_agent({"t": ir.as_retriever(corpus, k=3)})
 results = agent("deploy the app to the server")
-results[0].artifact_id        # -> "deploy"
+results[0].artifact_id  # -> "deploy"
 ```
 
 `sources` is any `Mapping[name, Retriever]`. Build it with
@@ -119,8 +119,8 @@ import raglab
 
 agent = raglab.make_search_agent(
     sources,
-    formulator=raglab.make_llm_formulator(),   # rewrite/expand the query (HyDE)
-    evaluator=raglab.make_llm_evaluator(),      # sufficiency + the back-edge
+    formulator=raglab.make_llm_formulator(),  # rewrite/expand the query (HyDE)
+    evaluator=raglab.make_llm_evaluator(),  # sufficiency + the back-edge
 )
 results = agent("how do I deploy the app")
 ```
@@ -182,13 +182,18 @@ Every role is just a callable matching a `Protocol`, so you can inject your own:
 ```python
 from raglab import SubTask, LowLevelQuery, Judgement, make_search_agent
 
+
 def my_planner(query, sources):
     # split into two sub-goals over all sources
-    return [SubTask(goal=g, sources=tuple(sources))
-            for g in (query.text, query.text + " examples")]
+    return [
+        SubTask(goal=g, sources=tuple(sources))
+        for g in (query.text, query.text + " examples")
+    ]
+
 
 def my_formulator(task, source):
     return [LowLevelQuery(source=source, query=task.goal, params={"k": 10})]
+
 
 agent = make_search_agent(sources, planner=my_planner, formulator=my_formulator)
 ```
@@ -357,7 +362,8 @@ Dependency direction is one-way: `raglab` imports `ir`; `ir` never imports
 |--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
 | [`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.                                            |
 | [`LowLevelQuery`](_autosummary/raglab.agent.html.md#raglab.agent.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                                                                |
-| [`Judgement`](_autosummary/raglab.agent.html.md#raglab.agent.Judgement)(relevant, sufficient[, refinement])   | An evaluator's verdict over a round's results.                                                                        |
+| [`Judgement`](_autosummary/raglab.agent.html.md#raglab.agent.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                                                        |
+| [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.                                      |
 | [`Result`](_autosummary/raglab.agent.html.md#raglab.agent.Result)                                          | A retrieved item — ir's `SearchHit` (ir_09's `Result`): a *pointer + snippet* (`text`) with a `score` and `metadata`. |
 | [`Planner`](_autosummary/raglab.agent.html.md#raglab.agent.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                                                         |
 | [`Formulator`](_autosummary/raglab.agent.html.md#raglab.agent.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                                                         |
@@ -392,7 +398,19 @@ Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protoco
 
 Turn a sub-task + one source into concrete low-level queries.
 
-### *class* raglab.agent.Judgement(relevant, sufficient, refinement=None)
+### *class* raglab.agent.GradedLabel(level, is_about, is_supported, is_useful, evidence_quote='', facet=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.
+
+`level` is one of the evaluator’s ordered levels (best first). The axes are
+Self-RAG’s: `is_about` (topical, ISREL), `is_supported` (the content
+actually establishes it, not a lexical mention: ISSUP) and `is_useful`
+(ISUSE). `evidence_quote` is a verbatim span of the candidate’s content
+backing the level; `facet` names the sub-goal it was judged against.
+
+### *class* raglab.agent.Judgement(relevant, sufficient, refinement=None, graded=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -401,9 +419,11 @@ An evaluator’s verdict over a round’s results.
 `relevant` is the kept subset; `sufficient` says whether to stop; a
 non-`None` `refinement` is the **back-edge** — the next sub-task to
 re-query with. The pass-through default returns `sufficient=True` and no
-refinement (no loop).
+refinement (no loop). `graded` is optional and additive: a graded
+evaluator maps each judged `artifact_id` to its [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel);
+binary evaluators leave it empty.
 
-### *class* raglab.agent.LowLevelQuery(source, query, params=<factory>)
+### *class* raglab.agent.LowLevelQuery(source, query, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -430,7 +450,7 @@ role so a strategy can be swapped without touching the loop. It must return
 hits **unchanged** — never re-scored — because the pool keeps raw per-source
 magnitudes until the fan-in reranker.
 
-### *class* raglab.agent.Query(text, constraints=<factory>)
+### *class* raglab.agent.Query(text, constraints=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -447,7 +467,7 @@ Produce the final ordering over the (cross-source) merged results.
 A retrieved item — ir’s `SearchHit` (ir_09’s `Result`):
 a *pointer + snippet* (`text`) with a `score` and `metadata`.
 
-### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=<factory>, pool_cap=<function rank_fair_cap>)
+### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -576,7 +596,7 @@ A parametrized [`rrf_reranker()`](_autosummary/raglab.agent.html.md#raglab.agent
   * **rrf_k** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – the RRF rank constant (standard default 60).
   * **weights** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional per-source trust dial, by source name (default 1.0
     each) — biases the merge without ever comparing raw scores.
-  * **identity** (`Union`[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
+  * **identity** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
     — see `ir.retrieve.Identity`. Default: never merge across
     sources.
 * **Return type:**
@@ -720,23 +740,26 @@ Inject an LLM `formulator` (query rewrite/HyDE) and `evaluator` (sufficiency
 | [`identity_citer`](_autosummary/raglab.html.md#raglab.identity_citer)(results)                           | No-op citer (verification needs a generated claim — that lives in srag).                                                         |
 | [`make_llm_formulator`](_autosummary/raglab.html.md#raglab.make_llm_formulator)(\*[, formulate, params])      | An LLM-backed raglab [`Formulator`](_autosummary/raglab.agent.html.md#raglab.agent.Formulator).                        |
 | [`make_llm_evaluator`](_autosummary/raglab.html.md#raglab.make_llm_evaluator)(\*[, judge, ...])              | An LLM-backed raglab [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) (turns on the back-edge). |
+| [`apply_gates`](_autosummary/raglab.html.md#raglab.apply_gates)(proposed, content, \*[, levels, ...]) | The level a judge's proposal is allowed, after calibration and the gates.                                                        |
+| [`make_graded_rubric_evaluator`](_autosummary/raglab.html.md#raglab.make_graded_rubric_evaluator)(\*[, levels, ...])   | An [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) that grades every candidate on a rubric.    |
 
 ### Classes
 
-| [`Query`](_autosummary/raglab.html.md#raglab.Query)(text[, constraints])                      | A user intent: free text plus optional structured constraints.             |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`SubTask`](_autosummary/raglab.html.md#raglab.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources. |
-| [`LowLevelQuery`](_autosummary/raglab.html.md#raglab.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                     |
-| [`Judgement`](_autosummary/raglab.html.md#raglab.Judgement)(relevant, sufficient[, refinement])   | An evaluator's verdict over a round's results.                             |
-| [`Result`](_autosummary/raglab.html.md#raglab.Result)                                          |                                                                            |
-| [`Planner`](_autosummary/raglab.html.md#raglab.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.              |
-| [`Formulator`](_autosummary/raglab.html.md#raglab.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.              |
-| [`Evaluator`](_autosummary/raglab.html.md#raglab.Evaluator)(\*args, \*\*kwargs)                   | Judge relevance + sufficiency; optionally emit a refinement (back-edge).   |
-| [`Reranker`](_autosummary/raglab.html.md#raglab.Reranker)(\*args, \*\*kwargs)                    | Produce the final ordering over the (cross-source) merged results.         |
-| [`Citer`](_autosummary/raglab.html.md#raglab.Citer)(\*args, \*\*kwargs)                       | Confirm/annotate that each result supports its use (identity by default).  |
-| [`Budget`](_autosummary/raglab.html.md#raglab.Budget)([max_rounds, max_sources_per_task, ...]) | Loop bounds: the safety net under the (harder) sufficiency decision.       |
-| [`PoolCap`](_autosummary/raglab.html.md#raglab.PoolCap)(\*args, \*\*kwargs)                     | Bound the pool the evaluator sees to at most `limit` results.              |
-| [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextAgent)(sources[, planner, ...])     | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default). |
+| [`Query`](_autosummary/raglab.html.md#raglab.Query)(text[, constraints])                      | A user intent: free text plus optional structured constraints.                   |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`SubTask`](_autosummary/raglab.html.md#raglab.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.       |
+| [`LowLevelQuery`](_autosummary/raglab.html.md#raglab.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                           |
+| [`Judgement`](_autosummary/raglab.html.md#raglab.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                   |
+| [`GradedLabel`](_autosummary/raglab.html.md#raglab.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence. |
+| [`Result`](_autosummary/raglab.html.md#raglab.Result)                                          |                                                                                  |
+| [`Planner`](_autosummary/raglab.html.md#raglab.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                    |
+| [`Formulator`](_autosummary/raglab.html.md#raglab.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                    |
+| [`Evaluator`](_autosummary/raglab.html.md#raglab.Evaluator)(\*args, \*\*kwargs)                   | Judge relevance + sufficiency; optionally emit a refinement (back-edge).         |
+| [`Reranker`](_autosummary/raglab.html.md#raglab.Reranker)(\*args, \*\*kwargs)                    | Produce the final ordering over the (cross-source) merged results.               |
+| [`Citer`](_autosummary/raglab.html.md#raglab.Citer)(\*args, \*\*kwargs)                       | Confirm/annotate that each result supports its use (identity by default).        |
+| [`Budget`](_autosummary/raglab.html.md#raglab.Budget)([max_rounds, max_sources_per_task, ...]) | Loop bounds: the safety net under the (harder) sufficiency decision.             |
+| [`PoolCap`](_autosummary/raglab.html.md#raglab.PoolCap)(\*args, \*\*kwargs)                     | Bound the pool the evaluator sees to at most `limit` results.                    |
+| [`SingleContextAgent`](_autosummary/raglab.html.md#raglab.SingleContextAgent)(sources[, planner, ...])     | One ReAct-style loop, sequential sub-tasks (ir_09 §7 — the cheap default).       |
 
 ### *class* raglab.Budget(max_rounds=3, max_sources_per_task=4, max_results_per_task=50)
 
@@ -762,7 +785,19 @@ Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protoco
 
 Turn a sub-task + one source into concrete low-level queries.
 
-### *class* raglab.Judgement(relevant, sufficient, refinement=None)
+### *class* raglab.GradedLabel(level, is_about, is_supported, is_useful, evidence_quote='', facet=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.
+
+`level` is one of the evaluator’s ordered levels (best first). The axes are
+Self-RAG’s: `is_about` (topical, ISREL), `is_supported` (the content
+actually establishes it, not a lexical mention: ISSUP) and `is_useful`
+(ISUSE). `evidence_quote` is a verbatim span of the candidate’s content
+backing the level; `facet` names the sub-goal it was judged against.
+
+### *class* raglab.Judgement(relevant, sufficient, refinement=None, graded=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -771,9 +806,11 @@ An evaluator’s verdict over a round’s results.
 `relevant` is the kept subset; `sufficient` says whether to stop; a
 non-`None` `refinement` is the **back-edge** — the next sub-task to
 re-query with. The pass-through default returns `sufficient=True` and no
-refinement (no loop).
+refinement (no loop). `graded` is optional and additive: a graded
+evaluator maps each judged `artifact_id` to its [`GradedLabel`](_autosummary/raglab.html.md#raglab.GradedLabel);
+binary evaluators leave it empty.
 
-### *class* raglab.LowLevelQuery(source, query, params=<factory>)
+### *class* raglab.LowLevelQuery(source, query, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -800,7 +837,7 @@ role so a strategy can be swapped without touching the loop. It must return
 hits **unchanged** — never re-scored — because the pool keeps raw per-source
 magnitudes until the fan-in reranker.
 
-### *class* raglab.Query(text, constraints=<factory>)
+### *class* raglab.Query(text, constraints=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -816,7 +853,7 @@ Produce the final ordering over the (cross-source) merged results.
 
 alias of `SearchHit`
 
-### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=<factory>, pool_cap=<function rank_fair_cap>)
+### *class* raglab.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -900,6 +937,29 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A planner’s unit of work: a sub-goal bound to a set of registered sources.
 
+### raglab.apply_gates(proposed, content, , levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), unsupported_cap='tangential', require_evidence_quote=True, calibration_offset=None, min_quote_chars=8)
+
+The level a judge’s proposal is allowed, after calibration and the gates.
+
+The quote must be at least `min_quote_chars` long and found in `content`,
+ignoring case and runs of whitespace (judges re-case and re-wrap what they
+copy). `calibration_offset` is in levels, rounded half up, so a shift is
+the same at every level.
+
+```pycon
+>>> label = GradedLabel('core', True, False, True, 'a DAG of tasks')
+>>> apply_gates(label, 'Runs a DAG of tasks asynchronously.').level
+'tangential'
+>>> ok = GradedLabel('core', True, True, True, 'graph  library')
+>>> apply_gates(ok, 'A graph library.').level, apply_gates(ok, 'Nothing here.').level
+('core', 'tangential')
+>>> apply_gates(ok, 'A graph library.', calibration_offset=1.4).level
+'strong'
+```
+
+* **Return type:**
+  [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)
+
 ### raglab.arrival_order_cap(results, limit)
 
 Keep the first `limit` hits in arrival order (source order x query order).
@@ -937,7 +997,53 @@ the agent accepts either, or any `Mapping[name, Retriever]`.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`SearchHit`]]]
 
-### raglab.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\\\n\\\\n{goal}\\\\n\\\\nA calibrated selector reviewed the retrieved candidates and committed to the\\\\nresults below (it abstained if this list is empty):\\\\n\\\\n{results}\\\\n\\\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\\\n- If they are, reply with exactly: SUFFICIENT\\\\n- If they are not, reply with: INSUFFICIENT\\\\n  then, on the next line, a single improved search query that would retrieve what\\\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\\\n', max_result_chars=500, \*\*prompt_function_kwargs)
+### raglab.make_graded_rubric_evaluator(, levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), rubric="- core: the candidate's main purpose IS the topic.\\n- strong: a substantial, central part of the candidate is about the topic.\\n- uses-tools: the candidate builds on tools or libraries of the topic (its dependencies or imports establish it) without being about it.\\n- tangential: the topic is mentioned, or its vocabulary appears, but the content does not establish it.\\n- none: unrelated.\\n", judge=None, disclose_level='body', disclose_kwargs=None, require_evidence_quote=True, unsupported_cap='tangential', calibration_offset=None, min_quote_chars=8, relevant_level='uses-tools', refine=None, rng=None, prompt='Goal: {goal}\\n\\nRubric (levels, in no particular order):\\n{levels}\\n\\nDefinitions:\\n{rubric}\\n\\nCandidate {artifact_id}:\\n---\\n{content}\\n---\\n\\nAnswer with one JSON object and nothing else, with keys:\\n"is_about" (bool: is the candidate topically about the goal?),\\n"is_supported" (bool: does its content - code, dependencies, imports, full text - actually establish it, beyond a mention of the words?),\\n"is_useful" (bool: would it help someone pursuing the goal?),\\n"evidence_quote" (a short span copied VERBATIM from the candidate\\'s content that supports your level),\\n"level" (one of the rubric\\'s levels).\\n', max_content_chars=4000, \*\*prompt_function_kwargs)
+
+An [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) that grades every candidate on a rubric.
+
+* **Parameters:**
+  * **levels** ([`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – the ordered levels, best first.
+  * **rubric** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – what each level means, shown to the judge.
+  * **judge** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – an injectable graded judge (a test double, or your own router);
+    built lazily on `oa` when omitted.
+  * **disclose_level** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – what the judge reads — each candidate’s
+    content through `ir.disclose()` at that level (`store=` /
+    `loader=` go in `disclose_kwargs`); a candidate with nothing to
+    load is judged on its snippet.
+  * **disclose_kwargs** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – what the judge reads — each candidate’s
+    content through `ir.disclose()` at that level (`store=` /
+    `loader=` go in `disclose_kwargs`); a candidate with nothing to
+    load is judged on its snippet.
+  * **require_evidence_quote** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.html.md#raglab.apply_gates).
+  * **unsupported_cap** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.html.md#raglab.apply_gates).
+  * **calibration_offset** ([`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.html.md#raglab.apply_gates).
+* **Return type:**
+  [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator)
+
+:param : min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.html.md#raglab.apply_gates).
+:type relevant_level: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+:param relevant_level: the lowest level kept in `Judgement.relevant`.
+:type refine: [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)]], [`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask) | [`None`](https://docs.python.org/3/builtins/constants.html#None)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+:param refine: the back-edge policy `(task, graded) -> SubTask | None`; by
+
+> default none, so the loop stops after one round.
+* **Parameters:**
+  **rng** ([`Random`](https://docs.python.org/3/library/random.html#random.Random) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the source of the per-call level order (seed it for reproducible
+  prompts).
+* **Return type:**
+  [*Evaluator*](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator)
+
+Every candidate is judged once per goal: one judge call per (source,
+artifact) the first time it appears in a pool for that goal, its label
+remembered for later rounds, so a kept hit is not re-judged (nor lost to a
+later failing call). `Judgement.graded` is keyed by `artifact_id`; an id
+found in several sources carries its best label. A reply that does not parse
+leaves the candidate ungraded (logged); when every judge call of a round
+raises, the first error is re-raised rather than returning an empty,
+“sufficient” round. This evaluator is for labelling a pool, not for cheap
+filtering.
+
+### raglab.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\n\\n{goal}\\n\\nA calibrated selector reviewed the retrieved candidates and committed to the\\nresults below (it abstained if this list is empty):\\n\\n{results}\\n\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\n- If they are, reply with exactly: SUFFICIENT\\n- If they are not, reply with: INSUFFICIENT\\n  then, on the next line, a single improved search query that would retrieve what\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\n', max_result_chars=500, \*\*prompt_function_kwargs)
 
 An LLM-backed raglab [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) (turns on the back-edge).
 
@@ -1011,7 +1117,7 @@ A parametrized [`rrf_reranker()`](_autosummary/raglab.html.md#raglab.rrf_reranke
   * **rrf_k** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – the RRF rank constant (standard default 60).
   * **weights** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional per-source trust dial, by source name (default 1.0
     each) — biases the merge without ever comparing raw scores.
-  * **identity** (`Union`[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
+  * **identity** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
     — see `ir.retrieve.Identity`. Default: never merge across
     sources.
 * **Return type:**
@@ -1107,9 +1213,134 @@ Trivial planner: one sub-task over *all* registered sources, no decomposition.
 
 ### Modules
 
-| [`agent`](_autosummary/raglab.agent.html.md#module-raglab.agent)   | The Composable Search Agent — roles wired by a control loop (ir_09).    |
-|------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| [`llm`](_autosummary/raglab.llm.html.md#module-raglab.llm)       | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3). |
+| [`agent`](_autosummary/raglab.agent.html.md#module-raglab.agent)     | The Composable Search Agent — roles wired by a control loop (ir_09).                      |
+|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`judging`](_autosummary/raglab.judging.html.md#module-raglab.judging) | Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8). |
+| [`llm`](_autosummary/raglab.llm.html.md#module-raglab.llm)         | LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 & 3).                   |
+
+
+# _autosummary/raglab.judging.html.md
+
+# raglab.judging
+
+Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8).
+
+A binary relevant/not cannot say “mentions the word but is not about it”. The
+evaluator built by [`make_graded_rubric_evaluator()`](_autosummary/raglab.judging.html.md#raglab.judging.make_graded_rubric_evaluator) asks an injected judge,
+for **each** candidate in the round’s pool, for the three Self-RAG axes
+(`is_about`, `is_supported`, `is_useful`), a level on an ordered scale and
+a verbatim `evidence_quote` from the candidate’s disclosed content. The judge
+proposes; deterministic gates here dispose:
+
+- a level above `unsupported_cap` needs `is_supported` — topical vocabulary
+  without supporting content is capped (the direct fix for on-word distractors);
+- with `require_evidence_quote`, it also needs a quote found verbatim in the
+  content the judge was shown (whitespace-insensitive);
+- `calibration_offset` (levels, learned from a gold slice) shifts every level
+  down (positive: the judge over-grades) or up;
+- the level options are shown in a fresh random order on every call, against
+  position bias.
+
+The result is a [`Judgement`](_autosummary/raglab.agent.html.md#raglab.agent.Judgement) whose additive `graded` map
+carries every label, whose `relevant` keeps the candidates at or above
+`relevant_level`, and whose back-edge comes from an injected `refine` policy
+(none by default: the loop stops). As in [`raglab.llm`](_autosummary/raglab.llm.html.md#module-raglab.llm), the default judge is
+built lazily on `oa`, so `import raglab` stays offline, and a judge that
+fails on a candidate leaves it ungraded rather than guessing.
+
+### Module Attributes
+
+| [`DEFAULT_LEVELS`](_autosummary/raglab.judging.html.md#raglab.judging.DEFAULT_LEVELS)         | Ordered levels, best first.                                                 |
+|-------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`DEFAULT_TOPICAL_RUBRIC`](_autosummary/raglab.judging.html.md#raglab.judging.DEFAULT_TOPICAL_RUBRIC) | What the default levels mean, for a "is this package about TOPIC" question. |
+| [`GRADING_PROMPT`](_autosummary/raglab.judging.html.md#raglab.judging.GRADING_PROMPT)         | The judge's prompt; `{levels}` is shown in a fresh random order each call.  |
+
+### Functions
+
+| [`make_graded_rubric_evaluator`](_autosummary/raglab.judging.html.md#raglab.judging.make_graded_rubric_evaluator)(\*[, levels, ...])   | An [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) that grades every candidate on a rubric.   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| [`apply_gates`](_autosummary/raglab.judging.html.md#raglab.judging.apply_gates)(proposed, content, \*[, levels, ...]) | The level a judge's proposal is allowed, after calibration and the gates.                                                       |
+
+### raglab.judging.DEFAULT_LEVELS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('core', 'strong', 'uses-tools', 'tangential', 'none')*
+
+Ordered levels, best first.
+
+### raglab.judging.DEFAULT_TOPICAL_RUBRIC *= "- core: the candidate's main purpose IS the topic.\\n- strong: a substantial, central part of the candidate is about the topic.\\n- uses-tools: the candidate builds on tools or libraries of the topic (its dependencies or imports establish it) without being about it.\\n- tangential: the topic is mentioned, or its vocabulary appears, but the content does not establish it.\\n- none: unrelated.\\n"*
+
+What the default levels mean, for a “is this package about TOPIC” question.
+
+### raglab.judging.GRADING_PROMPT *= 'Goal: {goal}\\n\\nRubric (levels, in no particular order):\\n{levels}\\n\\nDefinitions:\\n{rubric}\\n\\nCandidate {artifact_id}:\\n---\\n{content}\\n---\\n\\nAnswer with one JSON object and nothing else, with keys:\\n"is_about" (bool: is the candidate topically about the goal?),\\n"is_supported" (bool: does its content - code, dependencies, imports, full text - actually establish it, beyond a mention of the words?),\\n"is_useful" (bool: would it help someone pursuing the goal?),\\n"evidence_quote" (a short span copied VERBATIM from the candidate\\'s content that supports your level),\\n"level" (one of the rubric\\'s levels).\\n'*
+
+The judge’s prompt; `{levels}` is shown in a fresh random order each call.
+
+### raglab.judging.apply_gates(proposed, content, , levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), unsupported_cap='tangential', require_evidence_quote=True, calibration_offset=None, min_quote_chars=8)
+
+The level a judge’s proposal is allowed, after calibration and the gates.
+
+The quote must be at least `min_quote_chars` long and found in `content`,
+ignoring case and runs of whitespace (judges re-case and re-wrap what they
+copy). `calibration_offset` is in levels, rounded half up, so a shift is
+the same at every level.
+
+```pycon
+>>> label = GradedLabel('core', True, False, True, 'a DAG of tasks')
+>>> apply_gates(label, 'Runs a DAG of tasks asynchronously.').level
+'tangential'
+>>> ok = GradedLabel('core', True, True, True, 'graph  library')
+>>> apply_gates(ok, 'A graph library.').level, apply_gates(ok, 'Nothing here.').level
+('core', 'tangential')
+>>> apply_gates(ok, 'A graph library.', calibration_offset=1.4).level
+'strong'
+```
+
+* **Return type:**
+  [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)
+
+### raglab.judging.make_graded_rubric_evaluator(, levels=('core', 'strong', 'uses-tools', 'tangential', 'none'), rubric="- core: the candidate's main purpose IS the topic.\\n- strong: a substantial, central part of the candidate is about the topic.\\n- uses-tools: the candidate builds on tools or libraries of the topic (its dependencies or imports establish it) without being about it.\\n- tangential: the topic is mentioned, or its vocabulary appears, but the content does not establish it.\\n- none: unrelated.\\n", judge=None, disclose_level='body', disclose_kwargs=None, require_evidence_quote=True, unsupported_cap='tangential', calibration_offset=None, min_quote_chars=8, relevant_level='uses-tools', refine=None, rng=None, prompt='Goal: {goal}\\n\\nRubric (levels, in no particular order):\\n{levels}\\n\\nDefinitions:\\n{rubric}\\n\\nCandidate {artifact_id}:\\n---\\n{content}\\n---\\n\\nAnswer with one JSON object and nothing else, with keys:\\n"is_about" (bool: is the candidate topically about the goal?),\\n"is_supported" (bool: does its content - code, dependencies, imports, full text - actually establish it, beyond a mention of the words?),\\n"is_useful" (bool: would it help someone pursuing the goal?),\\n"evidence_quote" (a short span copied VERBATIM from the candidate\\'s content that supports your level),\\n"level" (one of the rubric\\'s levels).\\n', max_content_chars=4000, \*\*prompt_function_kwargs)
+
+An [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) that grades every candidate on a rubric.
+
+* **Parameters:**
+  * **levels** ([`Sequence`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]) – the ordered levels, best first.
+  * **rubric** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – what each level means, shown to the judge.
+  * **judge** ([`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – an injectable graded judge (a test double, or your own router);
+    built lazily on `oa` when omitted.
+  * **disclose_level** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – what the judge reads — each candidate’s
+    content through `ir.disclose()` at that level (`store=` /
+    `loader=` go in `disclose_kwargs`); a candidate with nothing to
+    load is judged on its snippet.
+  * **disclose_kwargs** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – what the judge reads — each candidate’s
+    content through `ir.disclose()` at that level (`store=` /
+    `loader=` go in `disclose_kwargs`); a candidate with nothing to
+    load is judged on its snippet.
+  * **require_evidence_quote** ([`bool`](https://docs.python.org/3/builtins/functions.html#bool)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.judging.html.md#raglab.judging.apply_gates).
+  * **unsupported_cap** ([`str`](https://docs.python.org/3/builtins/stdtypes.html#str)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.judging.html.md#raglab.judging.apply_gates).
+  * **calibration_offset** ([`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.judging.html.md#raglab.judging.apply_gates).
+* **Return type:**
+  [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator)
+
+:param : min_quote_chars: the gates, see [`apply_gates()`](_autosummary/raglab.judging.html.md#raglab.judging.apply_gates).
+:type relevant_level: [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+:param relevant_level: the lowest level kept in `Judgement.relevant`.
+:type refine: [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`GradedLabel`](_autosummary/raglab.agent.html.md#raglab.agent.GradedLabel)]], [`SubTask`](_autosummary/raglab.agent.html.md#raglab.agent.SubTask) | [`None`](https://docs.python.org/3/builtins/constants.html#None)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+:param refine: the back-edge policy `(task, graded) -> SubTask | None`; by
+
+> default none, so the loop stops after one round.
+* **Parameters:**
+  **rng** ([`Random`](https://docs.python.org/3/library/random.html#random.Random) | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – the source of the per-call level order (seed it for reproducible
+  prompts).
+* **Return type:**
+  [*Evaluator*](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator)
+
+Every candidate is judged once per goal: one judge call per (source,
+artifact) the first time it appears in a pool for that goal, its label
+remembered for later rounds, so a kept hit is not re-judged (nor lost to a
+later failing call). `Judgement.graded` is keyed by `artifact_id`; an id
+found in several sources carries its best label. A reply that does not parse
+leaves the candidate ungraded (logged); when every judge call of a round
+raises, the first error is re-raised rather than returning an empty,
+“sufficient” round. This evaluator is for labelling a pool, not for cheap
+filtering.
 
 
 # _autosummary/raglab.llm.html.md
@@ -1166,7 +1397,7 @@ loop’s break condition).
 Default prompt for [`make_llm_evaluator()`](_autosummary/raglab.llm.html.md#raglab.llm.make_llm_evaluator) — judge sufficiency, else emit a
 single improved query (the refinement that drives the back-edge).
 
-### raglab.llm.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\\\n\\\\n{goal}\\\\n\\\\nA calibrated selector reviewed the retrieved candidates and committed to the\\\\nresults below (it abstained if this list is empty):\\\\n\\\\n{results}\\\\n\\\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\\\n- If they are, reply with exactly: SUFFICIENT\\\\n- If they are not, reply with: INSUFFICIENT\\\\n  then, on the next line, a single improved search query that would retrieve what\\\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\\\n', max_result_chars=500, \*\*prompt_function_kwargs)
+### raglab.llm.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\n\\n{goal}\\n\\nA calibrated selector reviewed the retrieved candidates and committed to the\\nresults below (it abstained if this list is empty):\\n\\n{results}\\n\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\n- If they are, reply with exactly: SUFFICIENT\\n- If they are not, reply with: INSUFFICIENT\\n  then, on the next line, a single improved search query that would retrieve what\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\n', max_result_chars=500, \*\*prompt_function_kwargs)
 
 An LLM-backed raglab [`Evaluator`](_autosummary/raglab.agent.html.md#raglab.agent.Evaluator) (turns on the back-edge).
 
@@ -1239,16 +1470,18 @@ empty — a formulator must never make retrieval worse than the raw sub-goal.
 
 # About this build
 
-This documentation was built on **2026-10-14 07:23 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b"><code>090127f</code></a> on branch <code>main</code>, for **raglab 0.2.6** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-20 11:00 UTC** from commit <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2</code></a> on branch <code>main</code>, for **raglab 0.2.7** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.2.7) is behind the latest release on PyPI (0.2.8): `pip install raglab` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                          |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b"><code>090127fd8b464752395113479a26644c850c2b1b</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2"><code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code></a> |
 | Branch              | <code>main</code>                                                                                                                                        |
 | Tags at this commit | none                                                                                                                                                     |
 | Working tree        | clean                                                                                                                                                    |
@@ -1259,16 +1492,16 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/raglab</code>                                                             |
-| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/38527804127">38527804127</a>    |
+| Run          | <a href="https://github.com/thorwhalen/raglab/actions/runs/39411710569">39411710569</a>    |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>090127fd8b464752395113479a26644c850c2b1b</code> (in the history of the built commit) |
+| Event commit | <code>3be96a2696520ddb6349174a6bda3d7e2b0c7bc2</code> (in the history of the built commit) |
 
 ## Tools
 
 |          |         |
 |----------|---------|
-| epythet  | 0.2.17  |
-| Sphinx   | 9.1.0   |
+| epythet  | 0.2.19  |
+| Sphinx   | 9.1.1   |
 | docutils | 0.22.4  |
 | Python   | 3.12.15 |
 
@@ -1286,14 +1519,14 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/raglab/0.2.6/">0.2.6</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/raglab/0.2.8/">0.2.8</a>, newer than the documented version (0.2.7).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/raglab && cd raglab
-git checkout 090127fd8b464752395113479a26644c850c2b1b
-pip install "epythet==0.2.17"
+git checkout 3be96a2696520ddb6349174a6bda3d7e2b0c7bc2
+pip install "epythet==0.2.19"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
 

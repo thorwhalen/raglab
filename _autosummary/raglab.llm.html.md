@@ -50,7 +50,7 @@ loop’s break condition).
 Default prompt for [`make_llm_evaluator()`](#raglab.llm.make_llm_evaluator) — judge sufficiency, else emit a
 single improved query (the refinement that drives the back-edge).
 
-### raglab.llm.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\\\n\\\\n{goal}\\\\n\\\\nA calibrated selector reviewed the retrieved candidates and committed to the\\\\nresults below (it abstained if this list is empty):\\\\n\\\\n{results}\\\\n\\\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\\\n- If they are, reply with exactly: SUFFICIENT\\\\n- If they are not, reply with: INSUFFICIENT\\\\n  then, on the next line, a single improved search query that would retrieve what\\\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\\\n', max_result_chars=500, \*\*prompt_function_kwargs)
+### raglab.llm.make_llm_evaluator(, judge=None, select_strategy='conservative', select_kwargs=None, prerank=None, prompt='A search agent is pursuing this goal:\\n\\n{goal}\\n\\nA calibrated selector reviewed the retrieved candidates and committed to the\\nresults below (it abstained if this list is empty):\\n\\n{results}\\n\\nDecide whether these results are SUFFICIENT to satisfy the goal.\\n- If they are, reply with exactly: SUFFICIENT\\n- If they are not, reply with: INSUFFICIENT\\n  then, on the next line, a single improved search query that would retrieve what\\n  is still missing. Keep it a terse search phrase — no prose, no numbering.\\n', max_result_chars=500, \*\*prompt_function_kwargs)
 
 An LLM-backed raglab [`Evaluator`](raglab.agent.html.md#raglab.agent.Evaluator) (turns on the back-edge).
 

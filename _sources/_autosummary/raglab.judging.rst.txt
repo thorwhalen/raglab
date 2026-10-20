@@ -1,0 +1,21 @@
+raglab.judging
+==============
+
+.. automodule:: raglab.judging
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_LEVELS
+      DEFAULT_TOPICAL_RUBRIC
+      GRADING_PROMPT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      make_graded_rubric_evaluator
+      apply_gates
+   

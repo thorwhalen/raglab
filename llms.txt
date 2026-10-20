@@ -9,9 +9,10 @@
 - [API reference](api.html.md): | &#96;raglab&#96;   | &#96;raglab&#96; — the agentic-search / RAG orchestration layer on top of &#96;ir&#96;.   |
 - [raglab](_autosummary/raglab.html.md): &#96;raglab&#96; — the agentic-search / RAG orchestration layer on top of &#96;ir&#96;.
 - [raglab.agent](_autosummary/raglab.agent.html.md): The Composable Search Agent — roles wired by a control loop (ir_09).
+- [raglab.judging](_autosummary/raglab.judging.html.md): Graded rubric judging — every candidate gets a level, three axes and evidence (raglab#8).
 - [raglab.llm](_autosummary/raglab.llm.html.md): LLM-backed roles — the Formulator and Evaluator (ir_09 §8 steps 1 &amp; 3).
 - [For AI agents](ai-agents.html.md): &#96;raglab&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-14 07:23 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-20 11:00 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

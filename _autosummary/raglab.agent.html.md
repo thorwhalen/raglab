@@ -56,7 +56,8 @@ Dependency direction is one-way: `raglab` imports `ir`; `ir` never imports
 |--------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
 | [`SubTask`](#raglab.agent.SubTask)(goal, sources)                          | A planner's unit of work: a sub-goal bound to a set of registered sources.                                            |
 | [`LowLevelQuery`](#raglab.agent.LowLevelQuery)(source, query[, params])          | One concrete query against one source.                                                                                |
-| [`Judgement`](#raglab.agent.Judgement)(relevant, sufficient[, refinement])   | An evaluator's verdict over a round's results.                                                                        |
+| [`Judgement`](#raglab.agent.Judgement)(relevant, sufficient[, ...])          | An evaluator's verdict over a round's results.                                                                        |
+| [`GradedLabel`](#raglab.agent.GradedLabel)(level, is_about, is_supported, ...) | A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.                                      |
 | [`Result`](#raglab.agent.Result)                                          | A retrieved item — ir's `SearchHit` (ir_09's `Result`): a *pointer + snippet* (`text`) with a `score` and `metadata`. |
 | [`Planner`](#raglab.agent.Planner)(\*args, \*\*kwargs)                     | Decompose a query into sub-tasks and select sources for each.                                                         |
 | [`Formulator`](#raglab.agent.Formulator)(\*args, \*\*kwargs)                  | Turn a sub-task + one source into concrete low-level queries.                                                         |
@@ -91,7 +92,19 @@ Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protoco
 
 Turn a sub-task + one source into concrete low-level queries.
 
-### *class* raglab.agent.Judgement(relevant, sufficient, refinement=None)
+### *class* raglab.agent.GradedLabel(level, is_about, is_supported, is_useful, evidence_quote='', facet=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.
+
+`level` is one of the evaluator’s ordered levels (best first). The axes are
+Self-RAG’s: `is_about` (topical, ISREL), `is_supported` (the content
+actually establishes it, not a lexical mention: ISSUP) and `is_useful`
+(ISUSE). `evidence_quote` is a verbatim span of the candidate’s content
+backing the level; `facet` names the sub-goal it was judged against.
+
+### *class* raglab.agent.Judgement(relevant, sufficient, refinement=None, graded=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -100,9 +113,11 @@ An evaluator’s verdict over a round’s results.
 `relevant` is the kept subset; `sufficient` says whether to stop; a
 non-`None` `refinement` is the **back-edge** — the next sub-task to
 re-query with. The pass-through default returns `sufficient=True` and no
-refinement (no loop).
+refinement (no loop). `graded` is optional and additive: a graded
+evaluator maps each judged `artifact_id` to its [`GradedLabel`](#raglab.agent.GradedLabel);
+binary evaluators leave it empty.
 
-### *class* raglab.agent.LowLevelQuery(source, query, params=<factory>)
+### *class* raglab.agent.LowLevelQuery(source, query, params=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -129,7 +144,7 @@ role so a strategy can be swapped without touching the loop. It must return
 hits **unchanged** — never re-scored — because the pool keeps raw per-source
 magnitudes until the fan-in reranker.
 
-### *class* raglab.agent.Query(text, constraints=<factory>)
+### *class* raglab.agent.Query(text, constraints=dict())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -146,7 +161,7 @@ Produce the final ordering over the (cross-source) merged results.
 A retrieved item — ir’s `SearchHit` (ir_09’s `Result`):
 a *pointer + snippet* (`text`) with a `score` and `metadata`.
 
-### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=<factory>, pool_cap=<function rank_fair_cap>)
+### *class* raglab.agent.SingleContextAgent(sources, planner=<function single_subtask_planner>, formulator=<function identity_formulator>, evaluator=<function passthrough_evaluator>, reranker=<function rrf_reranker>, citer=<function identity_citer>, budget=Budget(), pool_cap=<function rank_fair_cap>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -275,7 +290,7 @@ A parametrized [`rrf_reranker()`](#raglab.agent.rrf_reranker) (per-source trust 
   * **rrf_k** ([`int`](https://docs.python.org/3/builtins/functions.html#int)) – the RRF rank constant (standard default 60).
   * **weights** ([`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)) – optional per-source trust dial, by source name (default 1.0
     each) — biases the merge without ever comparing raw scores.
-  * **identity** (`Union`[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
+  * **identity** ([`Union`](https://docs.python.org/3/library/typing.html#typing.Union)[[`Callable`](https://docs.python.org/3/library/typing.html#typing.Callable)[[`SearchHit`], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`None`](https://docs.python.org/3/builtins/constants.html#None)]) – opt-in cross-source duplicate detection (e.g. `"pointer"`)
     — see `ir.retrieve.Identity`. Default: never merge across
     sources.
 * **Return type:**

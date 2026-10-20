@@ -34,6 +34,7 @@
 <link href="_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/epythet.css?v=05df9aa6" />
   
@@ -43,7 +44,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=fc7d8818"></script>
+    <script src="_static/documentation_options.js?v=58050c01"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +57,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.2.6" />
+  <meta name="docsearch:version" content="0.2.7" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -365,7 +366,7 @@ more <code class="docutils literal notranslate"><span class="pre">ir</span></cod
 <span class="c1"># Register named ir corpora as the agent's sources, then search across them.</span>
 <span class="n">sources</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">ir_sources</span><span class="p">(</span><span class="s2">"skills"</span><span class="p">,</span> <span class="s2">"reports"</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"hybrid"</span><span class="p">)</span>
 <span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
-<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>     <span class="c1"># -&gt; list[ir.SearchHit], ranked</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>  <span class="c1"># -&gt; list[ir.SearchHit], ranked</span>
 </pre></div>
 </div>
 <p>A self-contained, runnable example (build a tiny corpus, search it):</p>
@@ -375,18 +376,18 @@ more <code class="docutils literal notranslate"><span class="pre">ir</span></cod
 
 <span class="n">docs</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"deploy"</span><span class="p">:</span> <span class="s2">"deploy the app to the server with systemd units"</span><span class="p">,</span>
-    <span class="s2">"embed"</span><span class="p">:</span>  <span class="s2">"embed text with a model and cache the vectors"</span><span class="p">,</span>
+    <span class="s2">"embed"</span><span class="p">:</span> <span class="s2">"embed text with a model and cache the vectors"</span><span class="p">,</span>
     <span class="s2">"search"</span><span class="p">:</span> <span class="s2">"vector similarity search with metadata filters"</span><span class="p">,</span>
 <span class="p">}</span>
 <span class="n">corpus</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">build</span><span class="p">(</span>
     <span class="n">ir</span><span class="o">.</span><span class="n">CorpusSource</span><span class="o">.</span><span class="n">from_mapping</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"t"</span><span class="p">,</span> <span class="n">strategy</span><span class="o">=</span><span class="n">ir</span><span class="o">.</span><span class="n">WholeText</span><span class="p">()),</span>
     <span class="n">store</span><span class="o">=</span><span class="n">CorpusStore</span><span class="o">.</span><span class="n">memory</span><span class="p">(),</span>
-    <span class="n">embedder</span><span class="o">=</span><span class="s2">"light"</span><span class="p">,</span>          <span class="c1"># numpy-only, no model download</span>
+    <span class="n">embedder</span><span class="o">=</span><span class="s2">"light"</span><span class="p">,</span>  <span class="c1"># numpy-only, no model download</span>
 <span class="p">)</span>
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">({</span><span class="s2">"t"</span><span class="p">:</span> <span class="n">ir</span><span class="o">.</span><span class="n">as_retriever</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)})</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"deploy the app to the server"</span><span class="p">)</span>
-<span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">artifact_id</span>        <span class="c1"># -&gt; "deploy"</span>
+<span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">artifact_id</span>  <span class="c1"># -&gt; "deploy"</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">sources</span></code> is any <code class="docutils literal notranslate"><span class="pre">Mapping[name,</span> <span class="pre">Retriever]</span></code>. Build it with
@@ -469,8 +470,8 @@ invoked</strong>, so <code class="docutils literal notranslate"><span class="pre
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">raglab</span><span class="o">.</span><span class="n">make_search_agent</span><span class="p">(</span>
     <span class="n">sources</span><span class="p">,</span>
-    <span class="n">formulator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_formulator</span><span class="p">(),</span>   <span class="c1"># rewrite/expand the query (HyDE)</span>
-    <span class="n">evaluator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_evaluator</span><span class="p">(),</span>      <span class="c1"># sufficiency + the back-edge</span>
+    <span class="n">formulator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_formulator</span><span class="p">(),</span>  <span class="c1"># rewrite/expand the query (HyDE)</span>
+    <span class="n">evaluator</span><span class="o">=</span><span class="n">raglab</span><span class="o">.</span><span class="n">make_llm_evaluator</span><span class="p">(),</span>  <span class="c1"># sufficiency + the back-edge</span>
 <span class="p">)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">agent</span><span class="p">(</span><span class="s2">"how do I deploy the app"</span><span class="p">)</span>
 </pre></div>
@@ -524,13 +525,18 @@ only <strong>ranks</strong> interact.</p>
 <p>Every role is just a callable matching a <code class="docutils literal notranslate"><span class="pre">Protocol</span></code>, so you can inject your own:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">raglab</span><span class="w"> </span><span class="kn">import</span> <span class="n">SubTask</span><span class="p">,</span> <span class="n">LowLevelQuery</span><span class="p">,</span> <span class="n">Judgement</span><span class="p">,</span> <span class="n">make_search_agent</span>
 
+
 <span class="k">def</span><span class="w"> </span><span class="nf">my_planner</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">sources</span><span class="p">):</span>
     <span class="c1"># split into two sub-goals over all sources</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">SubTask</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">g</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sources</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">" examples"</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">SubTask</span><span class="p">(</span><span class="n">goal</span><span class="o">=</span><span class="n">g</span><span class="p">,</span> <span class="n">sources</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sources</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">text</span> <span class="o">+</span> <span class="s2">" examples"</span><span class="p">)</span>
+    <span class="p">]</span>
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">my_formulator</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">LowLevelQuery</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="n">task</span><span class="o">.</span><span class="n">goal</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">"k"</span><span class="p">:</span> <span class="mi">10</span><span class="p">})]</span>
+
 
 <span class="n">agent</span> <span class="o">=</span> <span class="n">make_search_agent</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">planner</span><span class="o">=</span><span class="n">my_planner</span><span class="p">,</span> <span class="n">formulator</span><span class="o">=</span><span class="n">my_formulator</span><span class="p">)</span>
 </pre></div>
@@ -661,7 +667,7 @@ over a real <code class="docutils literal notranslate"><span class="pre">ir</spa
 </section>
 </section>
 
-<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-14 07:23 UTC from <a href="https://github.com/thorwhalen/raglab/commit/090127fd8b464752395113479a26644c850c2b1b">090127f</a> (main) · raglab 0.2.6 · <a href="about-this-build.html">about this build</a></p>
+<p class="epythet-provenance" style="font-size:.8em;opacity:.65;margin-top:2.5em;text-align:right">built 2026-10-20 11:00 UTC from <a href="https://github.com/thorwhalen/raglab/commit/3be96a2696520ddb6349174a6bda3d7e2b0c7bc2">3be96a2</a> (main) · raglab 0.2.7 · <a href="about-this-build.html">about this build</a></p>
 
                 </article>
               

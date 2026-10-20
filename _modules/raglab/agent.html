@@ -31,6 +31,7 @@
 <link href="../../_static/styles/pydata-sphinx-theme.css?digest=18bd87630a240e9c25be" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=05df9aa6" />
   
@@ -40,7 +41,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=fc7d8818"></script>
+    <script src="../../_static/documentation_options.js?v=58050c01"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -410,7 +411,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.2.6" />
+  <meta name="docsearch:version" content="0.2.7" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -765,6 +766,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"SubTask"</span><span class="p">,</span>
     <span class="s2">"LowLevelQuery"</span><span class="p">,</span>
     <span class="s2">"Judgement"</span><span class="p">,</span>
+    <span class="s2">"GradedLabel"</span><span class="p">,</span>
     <span class="s2">"Result"</span><span class="p">,</span>
     <span class="s2">"Retriever"</span><span class="p">,</span>
     <span class="s2">"Planner"</span><span class="p">,</span>
@@ -833,6 +835,28 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="GradedLabel">
+<a class="viewcode-back" href="../../_autosummary/raglab.agent.html#raglab.GradedLabel">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradedLabel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A graded verdict on one candidate (raglab#8): a level, three axes, the evidence.</span>
+
+<span class="sd">    ``level`` is one of the evaluator's ordered levels (best first). The axes are</span>
+<span class="sd">    Self-RAG's: ``is_about`` (topical, ISREL), ``is_supported`` (the content</span>
+<span class="sd">    actually establishes it, not a lexical mention: ISSUP) and ``is_useful``</span>
+<span class="sd">    (ISUSE). ``evidence_quote`` is a verbatim span of the candidate's content</span>
+<span class="sd">    backing the level; ``facet`` names the sub-goal it was judged against.</span>
+<span class="sd">    """</span>
+
+    <span class="n">level</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">is_about</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">is_supported</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">is_useful</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">evidence_quote</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">facet</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
 <div class="viewcode-block" id="Judgement">
 <a class="viewcode-back" href="../../_autosummary/raglab.agent.html#raglab.Judgement">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -842,12 +866,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``relevant`` is the kept subset; ``sufficient`` says whether to stop; a</span>
 <span class="sd">    non-``None`` ``refinement`` is the **back-edge** — the next sub-task to</span>
 <span class="sd">    re-query with. The pass-through default returns ``sufficient=True`` and no</span>
-<span class="sd">    refinement (no loop).</span>
+<span class="sd">    refinement (no loop). ``graded`` is optional and additive: a graded</span>
+<span class="sd">    evaluator maps each judged ``artifact_id`` to its :class:`GradedLabel`;</span>
+<span class="sd">    binary evaluators leave it empty.</span>
 <span class="sd">    """</span>
 
     <span class="n">relevant</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Result</span><span class="p">]</span>
     <span class="n">sufficient</span><span class="p">:</span> <span class="nb">bool</span>
-    <span class="n">refinement</span><span class="p">:</span> <span class="n">SubTask</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">refinement</span><span class="p">:</span> <span class="n">SubTask</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">graded</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">GradedLabel</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span></div>
 
 
 
